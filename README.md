@@ -59,3 +59,6 @@ This step is not necessary.
 ```
 c script-binding menu-open
 ```
+## Usage
+- Open a file in mpv and press `c` to open the script menu.
+- Follow the onscreen instructions. You need to set the start point, end point, and then press `c` to create the clip.
