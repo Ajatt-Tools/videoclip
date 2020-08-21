@@ -44,15 +44,15 @@ audio_bitrate=32k
 
 # The range of the scale is 0–51, where 0 is lossless,
 # 23 is the default, and 51 is worst quality possible.
-video_quality = 23,
+video_quality=23
 
 # Use the slowest preset that you have patience for.
 # https://trac.ffmpeg.org/wiki/Encode/H.264
-preset = 'faster',
+preset=faster
 
 # Video dimensions
-video_width = -2,
-video_height = 480,
+video_width=-2
+video_height=480
 ```
 Key bindings are configured in ```~/.config/mpv/input.conf```.
 This step is not necessary.
