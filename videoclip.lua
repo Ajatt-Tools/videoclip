@@ -181,7 +181,7 @@ menu.set_time_sub = function(property)
 end
 
 menu.update = function(message)
-    local osd = OSD:new():size(config.font_size):bold('Video clip crator'):newline():newline()
+    local osd = OSD:new():size(config.font_size):bold('Video clip creator'):newline():newline()
 
     osd:bold('Start time: '):append(format_time(timings['start'])):newline()
     osd:bold('End time: '):append(format_time(timings['end'])):newline():newline()
