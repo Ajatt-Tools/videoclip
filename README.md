@@ -1,6 +1,11 @@
 # videoclip
 Easily create videoclips with mpv in a few keypresses.
 
+## Requirements
+* A [distribution](https://www.gnu.org/distros/free-distros.html) of
+[GNU/Linux](https://www.gnu.org/gnu/about-gnu.html)
+* [FFmpeg](https://wiki.archlinux.org/index.php/FFmpeg)
+
 ## Installation
 ### Install as a part of your [dotfiles](https://wiki.archlinux.org/index.php/Dotfiles#Tracking_dotfiles_directly_with_Git)
 ```
