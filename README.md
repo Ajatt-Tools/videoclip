@@ -15,7 +15,8 @@ $ config submodule add 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/
 ```
 $ git clone 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
 ```
-Open or create  ```~/.config/mpv/scripts/modules.lua``` and add these lines:
+### Enable the addon
+After you've downloaded the addon, open or create  ```~/.config/mpv/scripts/modules.lua``` and add these lines:
 ```
 local mpv_scripts_dir_path = os.getenv("HOME") ..  "/.config/mpv/scripts/"
 function load(relative_path) dofile(mpv_scripts_dir_path .. relative_path) end
