@@ -9,7 +9,7 @@ local config = {
 	-- relative paths (e.g. ~ for home dir) do NOT work.
     media_path = string.format('%s/Videos/', os.getenv("HOME")),
 
-    font_size = 20,
+    font_size = 24,
 
     audio_bitrate = '32k',
 
