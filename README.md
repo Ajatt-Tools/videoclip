@@ -16,3 +16,12 @@ local mpv_scripts_dir_path = os.getenv("HOME") ..  "/.config/mpv/scripts/"
 function load(relative_path) dofile(mpv_scripts_dir_path .. relative_path) end
 load("videoclip/videoclip.lua")
 ```
+## Updating
+Submodules are updated using standard git commands:
+```
+$ config submodule update --remote --merge
+```
+or
+```
+$ cd ~/.config/mpv/scripts/videoclip && git pull
+```
