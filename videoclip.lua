@@ -118,6 +118,7 @@ end
 
 ffmpeg.create_videoclip = function(fn)
     if not timings:validate() then
+        mp.osd_message("Wrong timings. Aborting.", 2)
         return
     end
 
