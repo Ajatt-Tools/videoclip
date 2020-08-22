@@ -77,8 +77,6 @@ function construct_filename()
         format_time(timings['end'])
     )
 
-    filename = add_extension(filename, '.mp4')
-
     return filename
 end
 
@@ -116,18 +114,8 @@ ffmpeg.execute = function(args)
     mp.commandv("run", unpack(args))
 end
 
-ffmpeg.create_videoclip = function(fn)
-    if not timings:validate() then
-        mp.osd_message("Wrong timings. Aborting.", 2)
-        return
-    end
-
-    local clip_filename = construct_filename()
-
-    local video_path = mp.get_property("path")
-    local clip_path = config.media_path .. clip_filename
-    local track_number = get_audio_track_number()
-
+ffmpeg.create_videoclip = function(clip_filename, video_path, track_number)
+    local clip_path = add_extension(config.media_path .. clip_filename, '.mp4')
     ffmpeg.execute{'-ss', tostring(timings['start']),
                     '-to', tostring(timings['end']),
                     '-i', video_path,
@@ -148,6 +136,44 @@ ffmpeg.create_videoclip = function(fn)
     }
 end
 
+ffmpeg.create_audioclip = function(clip_filename, video_path, track_number)
+    local clip_path = add_extension(config.media_path .. clip_filename, '.ogg')
+
+    ffmpeg.execute{'-vn',
+                    '-ss', tostring(timings['start']),
+                    '-to', tostring(timings['end']),
+                    '-i', video_path,
+                    '-map_metadata', '-1',
+                    '-map', string.format("0:a:%d", track_number),
+                    '-ac', '2',
+                    '-codec:a', 'libopus',
+                    '-vbr', 'on',
+                    '-compression_level', '10',
+                    '-application', 'voip',
+                    '-b:a', tostring(config.audio_bitrate),
+                    clip_path
+    }
+end
+
+ffmpeg.create_clip = function(clip_type)
+    if clip_type == nil then return end
+
+    if not timings:validate() then
+        mp.osd_message("Wrong timings. Aborting.", 2)
+        return
+    end
+
+    local clip_filename = construct_filename()
+    local video_path = mp.get_property("path")
+    local track_number = get_audio_track_number()
+
+    if clip_type == 'video' then
+        ffmpeg.create_videoclip(clip_filename, video_path, track_number)
+    elseif clip_type == 'audio' then
+        ffmpeg.create_audioclip(clip_filename, video_path, track_number)
+    end
+end
+
 ------------------------------------------------------------
 -- main menu
 
@@ -158,7 +184,8 @@ menu.keybinds = {
     { key = 'e', fn = function() menu.set_time('end') end },
     { key = 'S', fn = function() menu.set_time_sub('start') end },
     { key = 'E', fn = function() menu.set_time_sub('end') end },
-    { key = 'c', fn = function() menu.commit() end },
+    { key = 'c', fn = function() ffmpeg.create_clip('video'); menu.close() end },
+    { key = 'a', fn = function() ffmpeg.create_clip('audio'); menu.close() end },
     { key = 'o', fn = function() mp.commandv('run', 'xdg-open', 'https://streamable.com/') end },
     { key = 'ESC', fn = function() menu.close() end },
 }
@@ -195,6 +222,7 @@ menu.update = function(message)
     osd:tab():bold('E: '):append('Set end time based on subtitles'):newline()
     osd:newline()
     osd:tab():bold('c: '):append('Create video clip'):newline()
+    osd:tab():bold('a: '):append('Create audio clip'):newline()
     osd:tab():bold('o: '):append('Open `streamable.com`'):newline()
     osd:tab():bold('ESC: '):append('Close'):newline()
 
@@ -203,11 +231,6 @@ menu.update = function(message)
     end
 
     osd:draw()
-end
-
-menu.commit = function()
-    ffmpeg.create_videoclip()
-    menu.close()
 end
 
 menu.close = function()
