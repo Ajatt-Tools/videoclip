@@ -1,4 +1,3 @@
-local util =  require('mp.utils')
 local msg =   require('mp.msg')
 local mpopt = require('mp.options')
 
@@ -26,25 +25,28 @@ local config = {
 }
 
 mpopt.read_options(config, 'videoclip')
-
 local overlay = mp.create_osd_overlay('ass-events')
+local menu
+local ffmpeg
+local OSD
+local Timings
 
 ------------------------------------------------------------
 -- utility functions
 
-function add_extension(filename, extension)
+local function add_extension(filename, extension)
     return filename .. extension
 end
 
-function remove_extension(filename)
+local function remove_extension(filename)
     return filename:gsub('%.%w+$','')
 end
 
-function remove_text_in_brackets(str)
+local function remove_text_in_brackets(str)
     return str:gsub('%b[]','')
 end
 
-function remove_special_characters(str)
+local function remove_special_characters(str)
     return str:gsub('[%c%p%s]','')
 end
 
@@ -63,7 +65,7 @@ local function format_time(seconds)
     return time
 end
 
-function construct_filename()
+local function construct_filename()
     local filename = mp.get_property("filename") -- filename without path
 
     filename = remove_extension(filename)
@@ -73,14 +75,14 @@ function construct_filename()
     filename = string.format(
         '%s_(%s-%s)',
         filename,
-        format_time(timings['start']),
-        format_time(timings['end'])
+        format_time(menu.timings['start']),
+        format_time(menu.timings['end'])
     )
 
     return filename
 end
 
-function get_audio_track_number()
+local function get_audio_track_number()
     local audio_track_number = 0
     local tracks_count = mp.get_property_number("track-list/count")
 
@@ -116,8 +118,8 @@ end
 
 ffmpeg.create_videoclip = function(clip_filename, video_path, track_number)
     local clip_path = add_extension(config.media_path .. clip_filename, '.mp4')
-    ffmpeg.execute{'-ss', tostring(timings['start']),
-                    '-to', tostring(timings['end']),
+    ffmpeg.execute{'-ss', tostring(menu.timings['start']),
+                    '-to', tostring(menu.timings['end']),
                     '-i', video_path,
                     '-map_metadata', '-1',
                     '-map', string.format("0:a:%d", track_number),
@@ -140,8 +142,8 @@ ffmpeg.create_audioclip = function(clip_filename, video_path, track_number)
     local clip_path = add_extension(config.media_path .. clip_filename, '.ogg')
 
     ffmpeg.execute{'-vn',
-                    '-ss', tostring(timings['start']),
-                    '-to', tostring(timings['end']),
+                    '-ss', tostring(menu.timings['start']),
+                    '-to', tostring(menu.timings['end']),
                     '-i', video_path,
                     '-map_metadata', '-1',
                     '-map', string.format("0:a:%d", track_number),
@@ -158,7 +160,7 @@ end
 ffmpeg.create_clip = function(clip_type)
     if clip_type == nil then return end
 
-    if not timings:validate() then
+    if not menu.timings:validate() then
         mp.osd_message("Wrong timings. Aborting.", 2)
         return
     end
@@ -191,7 +193,7 @@ menu.keybinds = {
 }
 
 menu.set_time = function(property)
-    timings[property] = mp.get_property_number('time-pos')
+    menu.timings[property] = mp.get_property_number('time-pos')
     menu.update()
 end
 
@@ -204,16 +206,16 @@ menu.set_time_sub = function(property)
         return
     end
 
-    timings[property] = time_pos + sub_delay
+    menu.timings[property] = time_pos + sub_delay
     menu.update()
 end
 
 menu.update = function(message)
     local osd = OSD:new():size(config.font_size):bold('Video clip creator'):newline():newline()
 
-    osd:bold('Start time: '):append(format_time(timings['start'])):newline()
-    osd:bold('End time: '):append(format_time(timings['end'])):newline():newline()
-
+    osd:bold('Start time: '):append(format_time(menu.timings['start'])):newline()
+    osd:bold('End time: '):append(format_time(menu.timings['end'])):newline()
+    osd:newline()
     osd:bold('Bindings:'):newline()
     osd:tab():bold('s: '):append('Set start time'):newline()
     osd:tab():bold('e: '):append('Set end time'):newline()
@@ -238,10 +240,11 @@ menu.close = function()
         mp.remove_key_binding(val.key)
     end
     overlay:remove()
-    timings:reset()
+    menu.timings:reset()
 end
 
 menu.open = function()
+    menu.timings = Timings:new()
     for _, val in pairs(menu.keybinds) do
         mp.add_key_binding(val.key, val.key, val.fn)
     end
@@ -311,5 +314,4 @@ end
 ------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
-timings = Timings:new()
 mp.add_key_binding('c', 'menu-open', menu.open)
