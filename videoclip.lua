@@ -113,47 +113,56 @@ ffmpeg.execute = function(args)
         table.insert(args, i, value)
     end
 
-    mp.commandv("run", unpack(args))
+    local ret = mp.command_native{
+        name = "subprocess",
+        playback_only = false,
+        capture_stdout = true,
+        args = args
+    }
+
+    return ret
 end
 
 ffmpeg.create_videoclip = function(clip_filename, video_path, track_number)
     local clip_path = add_extension(config.media_path .. clip_filename, '.mp4')
-    ffmpeg.execute{'-ss', tostring(menu.timings['start']),
-                    '-to', tostring(menu.timings['end']),
-                    '-i', video_path,
-                    '-map_metadata', '-1',
-                    '-map', string.format("0:a:%d", track_number),
-                    '-map', '0:v:0',
-                    '-codec:a', 'libopus',
-                    '-codec:v', 'libx264',
-                    '-preset', config.preset,
-                    '-vbr', 'on',
-                    '-compression_level', '10',
-                    '-application', 'voip',
-                    '-ac', '2',
-                    '-b:a', tostring(config.audio_bitrate),
-                    '-crf', tostring(config.video_quality),
-                    '-vf', string.format("scale=%d:%d", config.video_width, config.video_height),
-                    clip_path
+    return ffmpeg.execute{
+        '-ss', tostring(menu.timings['start']),
+        '-to', tostring(menu.timings['end']),
+        '-i', video_path,
+        '-map_metadata', '-1',
+        '-map', string.format("0:a:%d", track_number),
+        '-map', '0:v:0',
+        '-codec:a', 'libopus',
+        '-codec:v', 'libx264',
+        '-preset', config.preset,
+        '-vbr', 'on',
+        '-compression_level', '10',
+        '-application', 'voip',
+        '-ac', '2',
+        '-b:a', tostring(config.audio_bitrate),
+        '-crf', tostring(config.video_quality),
+        '-vf', string.format("scale=%d:%d", config.video_width, config.video_height),
+        clip_path
     }
 end
 
 ffmpeg.create_audioclip = function(clip_filename, video_path, track_number)
     local clip_path = add_extension(config.media_path .. clip_filename, '.ogg')
 
-    ffmpeg.execute{'-vn',
-                    '-ss', tostring(menu.timings['start']),
-                    '-to', tostring(menu.timings['end']),
-                    '-i', video_path,
-                    '-map_metadata', '-1',
-                    '-map', string.format("0:a:%d", track_number),
-                    '-ac', '2',
-                    '-codec:a', 'libopus',
-                    '-vbr', 'on',
-                    '-compression_level', '10',
-                    '-application', 'voip',
-                    '-b:a', tostring(config.audio_bitrate),
-                    clip_path
+    return ffmpeg.execute{
+        '-vn',
+        '-ss', tostring(menu.timings['start']),
+        '-to', tostring(menu.timings['end']),
+        '-i', video_path,
+        '-map_metadata', '-1',
+        '-map', string.format("0:a:%d", track_number),
+        '-ac', '2',
+        '-codec:a', 'libopus',
+        '-vbr', 'on',
+        '-compression_level', '10',
+        '-application', 'voip',
+        '-b:a', tostring(config.audio_bitrate),
+        clip_path
     }
 end
 
@@ -169,10 +178,20 @@ ffmpeg.create_clip = function(clip_type)
     local video_path = mp.get_property("path")
     local track_number = get_audio_track_number()
 
+    mp.osd_message("Please wait...", 9999)
+
+    local ret
+
     if clip_type == 'video' then
-        ffmpeg.create_videoclip(clip_filename, video_path, track_number)
+        ret = ffmpeg.create_videoclip(clip_filename, video_path, track_number)
     elseif clip_type == 'audio' then
-        ffmpeg.create_audioclip(clip_filename, video_path, track_number)
+        ret = ffmpeg.create_audioclip(clip_filename, video_path, track_number)
+    end
+
+    if ret.status == 0 then
+        mp.osd_message(string.format("Clip saved to %s.", config.media_path), 2)
+    else
+        mp.osd_message("Error: couldn't create the clip.", 2)
     end
 end
 
@@ -186,8 +205,8 @@ menu.keybinds = {
     { key = 'e', fn = function() menu.set_time('end') end },
     { key = 'S', fn = function() menu.set_time_sub('start') end },
     { key = 'E', fn = function() menu.set_time_sub('end') end },
-    { key = 'c', fn = function() ffmpeg.create_clip('video'); menu.close() end },
-    { key = 'a', fn = function() ffmpeg.create_clip('audio'); menu.close() end },
+    { key = 'c', fn = function() menu.close(); ffmpeg.create_clip('video'); menu.timings:reset() end },
+    { key = 'a', fn = function() menu.close(); ffmpeg.create_clip('audio'); menu.timings:reset() end },
     { key = 'o', fn = function() mp.commandv('run', 'xdg-open', 'https://streamable.com/') end },
     { key = 'ESC', fn = function() menu.close() end },
 }
@@ -240,7 +259,6 @@ menu.close = function()
         mp.remove_key_binding(val.key)
     end
     overlay:remove()
-    menu.timings:reset()
 end
 
 menu.open = function()
