@@ -35,12 +35,14 @@ $ cd ~/.config/mpv/scripts/videoclip && git pull
 Configuration file is located at ```~/.config/mpv/script-opts/videoclip.conf```
 and should be created by the user. If a parameter is not specified
 in the config file, the default value will be used.
+mpv doesn't tolerate spaces before and after `=`.
 
 Example configuration file:
 ```
-# Absolute path to the folder where generated clips will be placed.
+# Absolute paths to the folders where generated clips will be placed.
 # `~` or `$HOME` are not supported due to mpv limitations.
-media_path=/home/user/Videos
+video_folder_path=/home/user/Videos
+audio_folder_path=/home/user/Music
 
 # Menu size
 font_size=20

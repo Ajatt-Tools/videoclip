@@ -4,9 +4,10 @@ local mpopt = require('mp.options')
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
 local config = {
-    -- absolute path
+    -- absolute paths
 	-- relative paths (e.g. ~ for home dir) do NOT work.
-    media_path = string.format('%s/Videos/', os.getenv("HOME")),
+    video_folder_path = string.format('%s/Videos/', os.getenv("HOME")),
+    audio_folder_path = string.format('%s/Music/',  os.getenv("HOME")),
 
     font_size = 24,
 
@@ -124,7 +125,7 @@ ffmpeg.execute = function(args)
 end
 
 ffmpeg.create_videoclip = function(clip_filename, video_path, track_number)
-    local clip_path = add_extension(config.media_path .. clip_filename, '.mp4')
+    local clip_path = add_extension(config.video_folder_path .. clip_filename, '.mp4')
     return ffmpeg.execute{
         '-ss', tostring(menu.timings['start']),
         '-to', tostring(menu.timings['end']),
@@ -147,7 +148,7 @@ ffmpeg.create_videoclip = function(clip_filename, video_path, track_number)
 end
 
 ffmpeg.create_audioclip = function(clip_filename, video_path, track_number)
-    local clip_path = add_extension(config.media_path .. clip_filename, '.ogg')
+    local clip_path = add_extension(config.audio_folder_path .. clip_filename, '.ogg')
 
     return ffmpeg.execute{
         '-vn',
@@ -181,17 +182,20 @@ ffmpeg.create_clip = function(clip_type)
     mp.osd_message("Please wait...", 9999)
 
     local ret
+    local location
 
     if clip_type == 'video' then
+        location = config.video_folder_path
         ret = ffmpeg.create_videoclip(clip_filename, video_path, track_number)
     elseif clip_type == 'audio' then
+        location = config.audio_folder_path
         ret = ffmpeg.create_audioclip(clip_filename, video_path, track_number)
     end
 
     if ret.status == 0 then
-        mp.osd_message(string.format("Clip saved to %s.", config.media_path), 2)
+        mp.osd_message(string.format("Clip saved to %s.", location), 2)
     else
-        mp.osd_message("Error: couldn't create the clip.", 2)
+        mp.osd_message(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), 5)
     end
 end
 
