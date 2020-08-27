@@ -35,6 +35,10 @@ local Timings
 ------------------------------------------------------------
 -- utility functions
 
+function string:endswith(suffix)
+    return self:match(string.format('%s$', suffix))
+end
+
 local function add_extension(filename, extension)
     return filename .. extension
 end
@@ -331,6 +335,17 @@ end
 
 function Timings:validate()
     return self['start'] > 0 and self['start'] < self['end']
+end
+
+------------------------------------------------------------
+-- Validate config
+
+if not config.video_folder_path:endswith('/') then
+    config.video_folder_path = config.video_folder_path .. '/'
+end
+
+if not config.audio_folder_path:endswith('/') then
+    config.audio_folder_path = config.audio_folder_path .. '/'
 end
 
 ------------------------------------------------------------
