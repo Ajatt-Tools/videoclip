@@ -65,7 +65,7 @@ video_height=480
 Key bindings are configured in ```~/.config/mpv/input.conf```.
 This step is not necessary.
 ```
-c script-binding menu-open
+c script-binding videoclip-menu-open
 ```
 ## Usage
 - Open a file in mpv and press `c` to open the script menu.

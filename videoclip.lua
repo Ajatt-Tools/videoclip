@@ -351,4 +351,4 @@ end
 ------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
-mp.add_key_binding('c', 'menu-open', menu.open)
+mp.add_key_binding('c', 'videoclip-menu-open', menu.open)
