@@ -55,19 +55,25 @@ local function remove_special_characters(str)
     return str:gsub('[%c%p%s]','')
 end
 
-local function format_time(seconds)
-    if seconds < 0 then
+local function human_readable_time(seconds)
+    if type(seconds) ~= 'number' or seconds < 0 then
         return 'empty'
     end
 
-    local time = string.format('.%03d', seconds * 1000 % 1000);
-    time = string.format('%02d:%02d%s', seconds / 60 % 60, seconds % 60, time)
+    local parts = {}
 
-    if seconds > 3600 then
-        time = string.format('%02d:%s', seconds / 3600, time)
+    parts.h  = math.floor(seconds / 3600)
+    parts.m  = math.floor(seconds / 60) % 60
+    parts.s  = math.floor(seconds % 60)
+    parts.ms = math.floor((seconds * 1000) % 1000)
+
+    local ret = string.format("%02dm%02ds%03dms", parts.m, parts.s, parts.ms)
+
+    if parts.h > 0 then
+        ret = string.format('%dh%s', parts.h, ret)
     end
 
-    return time
+    return ret
 end
 
 local function construct_filename()
@@ -80,8 +86,8 @@ local function construct_filename()
     filename = string.format(
         '%s_(%s-%s)',
         filename,
-        format_time(menu.timings['start']),
-        format_time(menu.timings['end'])
+        human_readable_time(menu.timings['start']),
+        human_readable_time(menu.timings['end'])
     )
 
     return filename
@@ -240,8 +246,8 @@ end
 menu.update = function(message)
     local osd = OSD:new():size(config.font_size):bold('Video clip creator'):newline():newline()
 
-    osd:bold('Start time: '):append(format_time(menu.timings['start'])):newline()
-    osd:bold('End time: '):append(format_time(menu.timings['end'])):newline()
+    osd:bold('Start time: '):append(human_readable_time(menu.timings['start'])):newline()
+    osd:bold('End time: '):append(human_readable_time(menu.timings['end'])):newline()
     osd:newline()
     osd:bold('Bindings:'):newline()
     osd:tab():bold('s: '):append('Set start time'):newline()
