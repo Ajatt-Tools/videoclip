@@ -235,7 +235,7 @@ menu.set_time_sub = function(property)
     local time_pos = mp.get_property_number(string.format("sub-%s", property))
 
     if time_pos == nil then
-        menu.update("Warning: No subtitles visible.")
+        mp.osd_message("Warning: No subtitles visible.", 2)
         return
     end
 
@@ -243,7 +243,7 @@ menu.set_time_sub = function(property)
     menu.update()
 end
 
-menu.update = function(message)
+menu.update = function()
     local osd = OSD:new():size(config.font_size):align(4)
     osd:bold('Clip creator'):newline():newline()
 
@@ -261,10 +261,6 @@ menu.update = function(message)
     osd:tab():bold('a: '):append('Create audio clip'):newline()
     osd:tab():bold('o: '):append('Open `streamable.com`'):newline()
     osd:tab():bold('ESC: '):append('Close'):newline()
-
-    if message ~= nil then
-        osd:newline():append(message):newline()
-    end
 
     osd:draw()
 end
