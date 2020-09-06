@@ -244,7 +244,8 @@ menu.set_time_sub = function(property)
 end
 
 menu.update = function(message)
-    local osd = OSD:new():size(config.font_size):bold('Video clip creator'):newline():newline()
+    local osd = OSD:new():size(config.font_size):align(4)
+    osd:bold('Clip creator'):newline():newline()
 
     osd:bold('Start time: '):append(human_readable_time(menu.timings['start'])):newline()
     osd:bold('End time: '):append(human_readable_time(menu.timings['end'])):newline()
@@ -312,6 +313,10 @@ end
 
 function OSD:size(size)
     return self:append('{\\fs' .. size .. '}')
+end
+
+function OSD:align(number)
+    return self:append('{\\an' .. number .. '}')
 end
 
 function OSD:draw()
