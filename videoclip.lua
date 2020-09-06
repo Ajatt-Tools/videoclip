@@ -286,6 +286,7 @@ end
 
 ------------------------------------------------------------
 -- Helper class for styling OSD messages
+-- http://docs.aegisub.org/3.2/ASS_Tags/
 
 OSD = {}
 OSD.__index = OSD
