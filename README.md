@@ -1,5 +1,5 @@
 # videoclip
-Easily create videoclips with mpv in a few keypresses.
+Easily create videoclips with mpv in a few keypresses. Videoclips are saved as `.mp4`.
 
 ## Requirements
 * A [distribution](https://www.gnu.org/distros/free-distros.html) of
