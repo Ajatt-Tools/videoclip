@@ -340,7 +340,7 @@ function Timings:reset()
 end
 
 function Timings:validate()
-    return self['start'] > 0 and self['start'] < self['end']
+    return self['start'] >= 0 and self['start'] < self['end']
 end
 
 ------------------------------------------------------------
