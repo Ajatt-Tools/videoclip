@@ -1,4 +1,3 @@
-local msg =   require('mp.msg')
 local mpopt = require('mp.options')
 
 -- Options can be changed here or in a separate config file.
