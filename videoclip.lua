@@ -123,7 +123,7 @@ ffmpeg.execute = function(args)
         table.insert(args, i, value)
     end
 
-    local ret = mp.command_native{
+    local ret = mp.command_native {
         name = "subprocess",
         playback_only = false,
         capture_stdout = true,
@@ -135,7 +135,7 @@ end
 
 ffmpeg.create_videoclip = function(clip_filename, video_path, track_number)
     local clip_path = add_extension(config.video_folder_path .. clip_filename, '.mp4')
-    return ffmpeg.execute{
+    return ffmpeg.execute {
         '-ss', tostring(menu.timings['start']),
         '-to', tostring(menu.timings['end']),
         '-i', video_path,
@@ -159,7 +159,7 @@ end
 ffmpeg.create_audioclip = function(clip_filename, video_path, track_number)
     local clip_path = add_extension(config.audio_folder_path .. clip_filename, '.ogg')
 
-    return ffmpeg.execute{
+    return ffmpeg.execute {
         '-vn',
         '-ss', tostring(menu.timings['start']),
         '-to', tostring(menu.timings['end']),
@@ -287,7 +287,7 @@ OSD = {}
 OSD.__index = OSD
 
 function OSD:new()
-    return setmetatable({text=''}, self)
+    return setmetatable({ text = '' }, self)
 end
 
 function OSD:append(s)
