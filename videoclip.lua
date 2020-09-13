@@ -83,10 +83,10 @@ local function construct_filename()
     filename = remove_special_characters(filename)
 
     filename = string.format(
-        '%s_(%s-%s)',
-        filename,
-        human_readable_time(menu.timings['start']),
-        human_readable_time(menu.timings['end'])
+            '%s_(%s-%s)',
+            filename,
+            human_readable_time(menu.timings['start']),
+            human_readable_time(menu.timings['end'])
     )
 
     return filename
