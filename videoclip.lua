@@ -4,9 +4,9 @@ local mpopt = require('mp.options')
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
 local config = {
     -- absolute paths
-	-- relative paths (e.g. ~ for home dir) do NOT work.
+    -- relative paths (e.g. ~ for home dir) do NOT work.
     video_folder_path = string.format('%s/Videos/', os.getenv("HOME")),
-    audio_folder_path = string.format('%s/Music/',  os.getenv("HOME")),
+    audio_folder_path = string.format('%s/Music/', os.getenv("HOME")),
 
     font_size = 24,
 
@@ -41,17 +41,16 @@ end
 local function add_extension(filename, extension)
     return filename .. extension
 end
-
 local function remove_extension(filename)
-    return filename:gsub('%.%w+$','')
+    return filename:gsub('%.%w+$', '')
 end
 
 local function remove_text_in_brackets(str)
-    return str:gsub('%b[]','')
+    return str:gsub('%b[]', '')
 end
 
 local function remove_special_characters(str)
-    return str:gsub('[%c%p%s]','')
+    return str:gsub('[%c%p%s]', '')
 end
 
 local function human_readable_time(seconds)
@@ -61,9 +60,9 @@ local function human_readable_time(seconds)
 
     local parts = {}
 
-    parts.h  = math.floor(seconds / 3600)
-    parts.m  = math.floor(seconds / 60) % 60
-    parts.s  = math.floor(seconds % 60)
+    parts.h = math.floor(seconds / 3600)
+    parts.m = math.floor(seconds / 60) % 60
+    parts.s = math.floor(seconds % 60)
     parts.ms = math.floor((seconds * 1000) % 1000)
 
     local ret = string.format("%02dm%02ds%03dms", parts.m, parts.s, parts.ms)
@@ -315,7 +314,7 @@ end
 
 function Timings:reset()
     self['start'] = -1
-    self['end']   = -1
+    self['end'] = -1
 end
 
 function Timings:validate()
