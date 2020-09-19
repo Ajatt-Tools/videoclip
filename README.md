@@ -1,10 +1,6 @@
 # videoclip
 Easily create video and audio clips with mpv in a few keypresses. Videoclips are saved as `.mp4`.
 ![screenshot](https://user-images.githubusercontent.com/69171671/92329784-683ff900-f059-11ea-9514-e8718e42dd5a.jpg)
-## Requirements
-* A [distribution](https://www.gnu.org/distros/free-distros.html) of
-[GNU/Linux](https://www.gnu.org/gnu/about-gnu.html)
-* [FFmpeg](https://wiki.archlinux.org/index.php/FFmpeg)
 
 ## Installation
 ### Install as a part of your [dotfiles](https://wiki.archlinux.org/index.php/Dotfiles#Tracking_dotfiles_directly_with_Git)
