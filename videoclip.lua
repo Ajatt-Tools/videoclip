@@ -38,9 +38,6 @@ function string:endswith(suffix)
     return self:match(string.format('%s$', suffix))
 end
 
-local function add_extension(filename, extension)
-    return filename .. extension
-end
 local function remove_extension(filename)
     return filename:gsub('%.%w+$', '')
 end
