@@ -14,6 +14,7 @@ local config = {
 
     -- The range of the CRF scale is 0–51, where 0 is lossless,
     -- 23 is the default, and 51 is worst quality possible.
+    -- Insane values like 9999 still work but produce the worst quality.
     video_quality = 23,
 
     -- Use the slowest preset that you have patience for.
