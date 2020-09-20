@@ -25,7 +25,6 @@ local config = {
 }
 
 mpopt.read_options(config, 'videoclip')
-local overlay = mp.create_osd_overlay('ass-events')
 local menu
 local encoder
 local OSD
@@ -187,6 +186,13 @@ end
 
 menu = {}
 
+menu.overlay = mp.create_osd_overlay('ass-events')
+
+menu.overlay_draw = function(text)
+    menu.overlay.data = text
+    menu.overlay:update()
+end
+
 menu.keybinds = {
     { key = 's', fn = function() menu.set_time('start') end },
     { key = 'e', fn = function() menu.set_time('end') end },
@@ -235,14 +241,14 @@ menu.update = function()
     osd:tab():bold('o: '):append('Open `streamable.com`'):newline()
     osd:tab():bold('ESC: '):append('Close'):newline()
 
-    osd:draw()
+    menu.overlay_draw(osd.text)
 end
 
 menu.close = function()
     for _, val in pairs(menu.keybinds) do
         mp.remove_key_binding(val.key)
     end
-    overlay:remove()
+    menu.overlay:remove()
 end
 
 menu.open = function()
