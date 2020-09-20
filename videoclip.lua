@@ -186,8 +186,8 @@ encoder.create_clip = function(clip_type)
         ret = encoder.create_audioclip(clip_filename)
     end
 
-    if string.match(ret.stdout, "could not open") then
-        mp.osd_message(string.format("Error: %s doesn't exist.", location), 5)
+    if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
+        mp.osd_message(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), 5)
     else
         mp.osd_message(string.format("Clip saved to %s.", location), 2)
     end
