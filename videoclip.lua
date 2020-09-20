@@ -330,6 +330,10 @@ if not config.audio_folder_path:endswith('/') then
     config.audio_folder_path = config.audio_folder_path .. '/'
 end
 
+if not config.audio_bitrate:endswith('k') then
+    config.audio_bitrate = config.audio_bitrate .. 'k'
+end
+
 ------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
