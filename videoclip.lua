@@ -173,7 +173,6 @@ encoder.create_clip = function(clip_type)
     end
 
     local clip_filename = construct_filename()
-
     mp.osd_message("Please wait...", 9999)
 
     local ret
