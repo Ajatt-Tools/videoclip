@@ -276,28 +276,23 @@ function OSD:append(s)
 end
 
 function OSD:bold(s)
-    return self:append('{\\b1}' .. s .. '{\\b0}')
+    return self:append(string.format([[{\b1}%s{\b0}]], s))
 end
 
 function OSD:newline()
-    return self:append('\\N')
+    return self:append([[\N]])
 end
 
 function OSD:tab()
-    return self:append('\\h\\h\\h\\h')
+    return self:append([[\h\h\h\h]])
 end
 
 function OSD:size(size)
-    return self:append('{\\fs' .. size .. '}')
+    return self:append(string.format([[{\fs%s}]], size))
 end
 
 function OSD:align(number)
-    return self:append('{\\an' .. number .. '}')
-end
-
-function OSD:draw()
-    overlay.data = self.text
-    overlay:update()
+    return self:append(string.format([[{\an%s}]], number))
 end
 
 ------------------------------------------------------------
