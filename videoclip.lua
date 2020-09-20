@@ -31,6 +31,18 @@ local encoder
 local OSD
 local Timings
 
+local presets = {
+    ultrafast = true,
+    superfast = true,
+    veryfast = true,
+    faster = true,
+    fast = true,
+    medium = true,
+    slow = true,
+    slower = true,
+    veryslow = true,
+}
+
 ------------------------------------------------------------
 -- utility functions
 
@@ -333,6 +345,10 @@ end
 
 if not config.audio_bitrate:endswith('k') then
     config.audio_bitrate = config.audio_bitrate .. 'k'
+end
+
+if not presets[config.preset] then
+    config.preset = 'faster'
 end
 
 ------------------------------------------------------------
