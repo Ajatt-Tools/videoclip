@@ -47,7 +47,7 @@ local presets = {
 -- utility functions
 
 function string:endswith(suffix)
-    return self:match(string.format('%s$', suffix))
+    return suffix == "" or self:sub(-#suffix) == suffix
 end
 
 local function remove_extension(filename)
