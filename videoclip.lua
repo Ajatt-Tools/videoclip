@@ -253,7 +253,7 @@ menu.update = function()
     osd:tab():bold('o: '):append('Open `streamable.com`'):newline()
     osd:tab():bold('ESC: '):append('Close'):newline()
 
-    menu.overlay_draw(osd.text)
+    menu.overlay_draw(osd:get_text())
 end
 
 menu.close = function()
@@ -279,11 +279,11 @@ OSD = {}
 OSD.__index = OSD
 
 function OSD:new()
-    return setmetatable({ text = '' }, self)
+    return setmetatable({ text = {} }, self)
 end
 
 function OSD:append(s)
-    self.text = self.text .. s
+    table.insert(self.text, s)
     return self
 end
 
@@ -305,6 +305,10 @@ end
 
 function OSD:align(number)
     return self:append(string.format([[{\an%s}]], number))
+end
+
+function OSD:get_text()
+    return table.concat(self.text)
 end
 
 ------------------------------------------------------------
