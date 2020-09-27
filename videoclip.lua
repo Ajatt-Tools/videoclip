@@ -291,6 +291,10 @@ function OSD:bold(s)
     return self:append(string.format([[{\b1}%s{\b0}]], s))
 end
 
+function OSD:italics(s)
+    return self:append('{\\i1}'):append(s):append('{\\i0}')
+end
+
 function OSD:newline()
     return self:append([[\N]])
 end
