@@ -163,6 +163,7 @@ encoder.create_audioclip = function(clip_filename)
 end
 
 encoder.create_clip = function(clip_type)
+    menu.close();
     if clip_type == nil then
         return
     end
@@ -191,6 +192,7 @@ encoder.create_clip = function(clip_type)
     else
         mp.osd_message(string.format("Clip saved to %s.", location), 2)
     end
+    menu.timings:reset()
 end
 
 ------------------------------------------------------------
@@ -210,8 +212,8 @@ menu.keybinds = {
     { key = 'e', fn = function() menu.set_time('end') end },
     { key = 'S', fn = function() menu.set_time_sub('start') end },
     { key = 'E', fn = function() menu.set_time_sub('end') end },
-    { key = 'c', fn = function() menu.close(); encoder.create_clip('video'); menu.timings:reset() end },
-    { key = 'a', fn = function() menu.close(); encoder.create_clip('audio'); menu.timings:reset() end },
+    { key = 'c', fn = function() encoder.create_clip('video') end },
+    { key = 'a', fn = function() encoder.create_clip('audio') end },
     { key = 'o', fn = function() mp.commandv('run', 'xdg-open', 'https://streamable.com/') end },
     { key = 'ESC', fn = function() menu.close() end },
 }
@@ -248,10 +250,12 @@ menu.update = function()
     osd:tab():bold('S: '):append('Set start time based on subtitles'):newline()
     osd:tab():bold('E: '):append('Set end time based on subtitles'):newline()
     osd:newline()
-    osd:tab():bold('c: '):append('Create video clip'):newline()
-    osd:tab():bold('a: '):append('Create audio clip'):newline()
     osd:tab():bold('o: '):append('Open `streamable.com`'):newline()
     osd:tab():bold('ESC: '):append('Close'):newline()
+    osd:newline()
+    osd:bold('Create clip:'):newline()
+    osd:tab():bold('c: '):append('video clip'):newline()
+    osd:tab():bold('a: '):append('audio clip'):newline()
 
     menu.overlay_draw(osd:get_text())
 end
