@@ -1,4 +1,5 @@
 local mpopt = require('mp.options')
+local utils = require('mp.utils')
 
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
@@ -116,7 +117,7 @@ end
 encoder = {}
 
 encoder.create_videoclip = function(clip_filename)
-    local clip_path = table.concat { config.video_folder_path, clip_filename, '.mp4' }
+    local clip_path = utils.join_path(config.video_folder_path, clip_filename .. '.mp4')
     return subprocess {
         'mpv',
         mp.get_property('path'),
@@ -141,7 +142,7 @@ encoder.create_videoclip = function(clip_filename)
 end
 
 encoder.create_audioclip = function(clip_filename)
-    local clip_path = table.concat { config.audio_folder_path, clip_filename, '.ogg' }
+    local clip_path = utils.join_path(config.audio_folder_path, clip_filename .. '.ogg')
     return subprocess {
         'mpv',
         mp.get_property('path'),
@@ -345,14 +346,6 @@ end
 
 ------------------------------------------------------------
 -- Validate config
-
-if not config.video_folder_path:endswith('/') then
-    config.video_folder_path = config.video_folder_path .. '/'
-end
-
-if not config.audio_folder_path:endswith('/') then
-    config.audio_folder_path = config.audio_folder_path .. '/'
-end
 
 if not config.audio_bitrate:endswith('k') then
     config.audio_bitrate = config.audio_bitrate .. 'k'
