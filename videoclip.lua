@@ -5,8 +5,8 @@ local mpopt = require('mp.options')
 local config = {
     -- absolute paths
     -- relative paths (e.g. ~ for home dir) do NOT work.
-    video_folder_path = string.format('%s/Videos/', os.getenv("HOME")),
-    audio_folder_path = string.format('%s/Music/', os.getenv("HOME")),
+    video_folder_path = string.format('%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
+    audio_folder_path = string.format('%s/Music/', os.getenv("HOME") or os.getenv('USERPROFILE')),
 
     font_size = 24,
 
