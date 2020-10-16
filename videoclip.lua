@@ -133,6 +133,7 @@ encoder.create_videoclip = function(clip_filename)
         table.concat { '--start=', menu.timings['start'] },
         table.concat { '--end=', menu.timings['end'] },
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
+        table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
         table.concat { '--ovcopts-add=crf=', config.video_quality },
         table.concat { '--ovcopts-add=preset=', config.preset },
@@ -157,6 +158,7 @@ encoder.create_audioclip = function(clip_filename)
         '--oacopts-add=compression_level=10',
         table.concat { '--start=', menu.timings['start'] },
         table.concat { '--end=', menu.timings['end'] },
+        table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
         table.concat { '-o=', clip_path }
