@@ -25,6 +25,7 @@ local config = {
 
 mpopt.read_options(config, 'videoclip')
 local menu
+local pref_menu
 local encoder
 local OSD
 local Timings
@@ -329,6 +330,41 @@ function menu:update()
     osd:tab():bold('ESC: '):append('Close'):newline()
 
     self:overlay_draw(osd:get_text())
+end
+
+------------------------------------------------------------
+-- Preferences
+
+pref_menu = Menu:new(main_menu)
+
+pref_menu.keybinds = {
+    { key = 'f', fn = function() pref_menu:toggle_video_format() end },
+    { key = 'm', fn = function() pref_menu:toggle_mute_audio() end },
+    { key = 'ESC', fn = function() pref_menu:close() end },
+}
+
+function pref_menu:update()
+    local osd = OSD:new():size(config.font_size):align(4)
+    osd:bold('Preferences'):newline()
+    osd:bold('Video format: '):append(config.video_format):newline()
+    osd:bold('Mute audio: '):append(config.mute_audio and 'yes' or 'no'):newline()
+    osd:newline()
+    osd:bold('Bindings:'):newline()
+    osd:tab():bold('f: '):append('Toggle video format'):newline()
+    osd:tab():bold('m: '):append('Toggle silent video clips'):newline()
+
+    self:overlay_draw(osd:get_text())
+end
+
+function pref_menu:toggle_video_format()
+    config.video_format = config.video_format == 'mp4' and 'webm' or 'mp4'
+    set_video_settings()
+    self:update()
+end
+
+function pref_menu:toggle_mute_audio()
+    config.mute_audio = not config.mute_audio
+    self:update()
 end
 
 ------------------------------------------------------------
