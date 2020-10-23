@@ -243,7 +243,7 @@ function Menu:open()
         self.parent:close()
     end
     for _, val in pairs(self.keybindings) do
-        mp.add_key_binding(val.key, val.key, val.fn)
+        mp.add_forced_key_binding(val.key, val.key, val.fn)
     end
     self:update()
 end
