@@ -24,6 +24,8 @@ local config = {
 
     video_width = -2,
     video_height = 480,
+    video_format = 'mp4', -- webm or mp4
+    mute_audio = false,
 }
 
 mpopt.read_options(config, 'videoclip')
@@ -109,6 +111,16 @@ local function subprocess(args)
         capture_stderr = true,
         args = args
     }
+end
+
+local function set_video_settings()
+    if config.video_format == 'mp4' then
+        config.video_codec = 'libx264'
+        config.video_extension = '.mp4'
+    else
+        config.video_codec = 'libvpx-vp9'
+        config.video_extension = '.webm'
+    end
 end
 
 ------------------------------------------------------------
@@ -406,6 +418,8 @@ end
 if not allowed_presets[config.preset] then
     config.preset = 'faster'
 end
+
+set_video_settings()
 
 ------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
