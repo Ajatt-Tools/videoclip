@@ -43,7 +43,7 @@ $ cd ~/.config/mpv/scripts/videoclip && git pull
 ```
 ## Configuration
 Configuration file is located at ```~/.config/mpv/script-opts/videoclip.conf```
-and should be created by the user. If a parameter is not specified
+and should be created by the user if needed. If a parameter is not specified
 in the config file, the default value will be used.
 mpv doesn't tolerate spaces before and after `=`.
 
@@ -55,23 +55,27 @@ video_folder_path=/home/user/Videos
 audio_folder_path=/home/user/Music
 
 # Menu size
-font_size=20
+font_size=24
 
-# Sane values are from 16k to 32k.
-audio_bitrate=32k
-
+# Video settings
+video_width=-2
+video_height=480
+video_bitrate=1M
+# Available video formats: mp4, vp9, vp8
+video_format=mp4
 # The range of the scale is 0–51, where 0 is lossless,
 # 23 is the default, and 51 is worst quality possible.
 # Insane values like 9999 still work but produce the worst quality.
 video_quality=23
-
 # Use the slowest preset that you have patience for.
 # https://trac.ffmpeg.org/wiki/Encode/H.264
 preset=faster
 
-# Video dimensions
-video_width=-2
-video_height=480
+# Audio settings
+# Sane values for audio bitrate are from 16k to 64k.
+audio_bitrate=32k
+# Create silent videoclips by default. Possble values: `yes` or `no`.
+mute_audio=yes
 ```
 Key bindings are configured in ```~/.config/mpv/input.conf```.
 This step is not necessary.
