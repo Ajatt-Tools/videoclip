@@ -16,6 +16,7 @@ local config = {
     -- https://trac.ffmpeg.org/wiki/Encode/H.264
     preset = 'faster',
     video_format = 'mp4', -- mp4, vp9, vp8
+    video_bitrate = '1M',
     video_width = -2,
     video_height = 480,
     audio_bitrate = '32k',
@@ -157,6 +158,7 @@ encoder.create_videoclip = function(clip_filename)
         table.concat { '--end=', main_menu.timings['end'] },
         table.concat { '--aid=', config.mute_audio and 'no' or mp.get_property("aid") }, -- track number
         table.concat { '--volume=', mp.get_property('volume') },
+        table.concat { '--ovcopts-add=b=', config.video_bitrate },
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
         table.concat { '--ovcopts-add=crf=', config.video_quality },
         table.concat { '--ovcopts-add=preset=', config.preset },
