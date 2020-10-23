@@ -185,7 +185,7 @@ encoder.create_audioclip = function(clip_filename)
 end
 
 encoder.create_clip = function(clip_type)
-    menu.close();
+    menu:close();
     if clip_type == nil then
         return
     end
@@ -267,33 +267,28 @@ end
 ------------------------------------------------------------
 -- main menu
 
-menu = {}
-
-menu.overlay = mp.create_osd_overlay('ass-events')
-
-menu.overlay_draw = function(text)
-    menu.overlay.data = text
-    menu.overlay:update()
-end
+menu = Menu:new()
 
 menu.keybinds = {
-    { key = 's', fn = function() menu.set_time('start') end },
-    { key = 'e', fn = function() menu.set_time('end') end },
-    { key = 'S', fn = function() menu.set_time_sub('start') end },
-    { key = 'E', fn = function() menu.set_time_sub('end') end },
+    { key = 's', fn = function() menu:set_time('start') end },
+    { key = 'e', fn = function() menu:set_time('end') end },
+    { key = 'S', fn = function() menu:set_time_sub('start') end },
+    { key = 'E', fn = function() menu:set_time_sub('end') end },
+    { key = 'r', fn = function() menu:reset_timings() end },
     { key = 'c', fn = function() encoder.create_clip('video') end },
-    { key = 'm', fn = function() encoder.create_clip('video_muted') end },
+    { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() encoder.create_clip('audio') end },
+    { key = 'p', fn = function() pref_menu:open() end },
     { key = 'o', fn = function() mp.commandv('run', 'xdg-open', 'https://streamable.com/') end },
-    { key = 'ESC', fn = function() menu.close() end },
+    { key = 'ESC', fn = function() menu:close() end },
 }
 
-menu.set_time = function(property)
-    menu.timings[property] = mp.get_property_number('time-pos')
-    menu.update()
+function menu:set_time(property)
+    self.timings[property] = mp.get_property_number('time-pos')
+    self:update()
 end
 
-menu.set_time_sub = function(property)
+function menu:set_time_sub(property)
     local sub_delay = mp.get_property_native("sub-delay")
     local time_pos = mp.get_property_number(string.format("sub-%s", property))
 
@@ -302,48 +297,38 @@ menu.set_time_sub = function(property)
         return
     end
 
-    menu.timings[property] = time_pos + sub_delay
-    menu.update()
+    self.timings[property] = time_pos + sub_delay
+    self:update()
 end
 
-menu.update = function()
-    local osd = OSD:new():size(config.font_size):align(4)
-    osd:bold('Clip creator'):newline():newline()
-
-    osd:bold('Start time: '):append(human_readable_time(menu.timings['start'])):newline()
-    osd:bold('End time: '):append(human_readable_time(menu.timings['end'])):newline()
-    osd:newline()
-    osd:bold('Bindings:'):newline()
-    osd:tab():bold('s: '):append('Set start time'):newline()
-    osd:tab():bold('e: '):append('Set end time'):newline()
-    osd:newline()
-    osd:tab():bold('S: '):append('Set start time based on subtitles'):newline()
-    osd:tab():bold('E: '):append('Set end time based on subtitles'):newline()
-    osd:newline()
-    osd:tab():bold('o: '):append('Open `streamable.com`'):newline()
-    osd:tab():bold('ESC: '):append('Close'):newline()
-    osd:newline()
-    osd:bold('Create clip:'):newline()
-    osd:tab():bold('c: '):append('video clip'):newline()
-    osd:tab():bold('m: '):append('video clip (silent)'):newline()
-    osd:tab():bold('a: '):append('audio clip'):newline()
-
-    menu.overlay_draw(osd:get_text())
-end
-
-menu.close = function()
-    for _, val in pairs(menu.keybinds) do
-        mp.remove_key_binding(val.key)
-    end
-    menu.overlay:remove()
+function menu:reset_timings()
+    self.timings = Timings:new()
+    self:update()
 end
 
 menu.open = function()
-    menu.timings = Timings:new()
-    for _, val in pairs(menu.keybinds) do
-        mp.add_key_binding(val.key, val.key, val.fn)
-    end
-    menu.update()
+    menu.timings = menu.timings or Timings:new()
+    Menu.open(menu)
+end
+
+function menu:update()
+    local osd = OSD:new():size(config.font_size):align(4)
+    osd:bold('Clip creator'):newline()
+    osd:tab():bold('Start time: '):append(human_readable_time(self.timings['start'])):newline()
+    osd:tab():bold('End time: '):append(human_readable_time(self.timings['end'])):newline()
+    osd:bold('Timings: '):italics('(+shift use sub timings)'):newline()
+    osd:tab():bold('s: '):append('Set start'):newline()
+    osd:tab():bold('e: '):append('Set end'):newline()
+    osd:tab():bold('r: '):append('Reset'):newline()
+    osd:bold('Create clip: '):italics('(+shift to force fullHD preset)'):newline()
+    osd:tab():bold('c: '):append('video clip'):newline()
+    osd:tab():bold('a: '):append('audio clip'):newline()
+    osd:bold('Options: '):newline()
+    osd:tab():bold('p: '):append('Open preferences'):newline()
+    osd:tab():bold('o: '):append('Open streamable.com'):newline()
+    osd:tab():bold('ESC: '):append('Close'):newline()
+
+    self:overlay_draw(osd:get_text())
 end
 
 ------------------------------------------------------------
