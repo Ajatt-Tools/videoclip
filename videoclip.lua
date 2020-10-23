@@ -108,6 +108,18 @@ local function subprocess(args)
     }
 end
 
+local function force_resolution(width, height, clip_fn, ...)
+    local cached_prefs = {
+        video_width = config.video_width,
+        video_height = config.video_height,
+    }
+    config.video_width = width
+    config.video_height = height
+    clip_fn(...)
+    config.video_width = cached_prefs.video_width
+    config.video_height = cached_prefs.video_height
+end
+
 local function set_video_settings()
     if config.video_format == 'mp4' then
         config.video_codec = 'libx264'
