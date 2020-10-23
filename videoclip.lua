@@ -8,8 +8,6 @@ local config = {
     -- relative paths (e.g. ~ for home dir) do NOT work.
     video_folder_path = string.format('%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
     audio_folder_path = string.format('%s/Music/', os.getenv("HOME") or os.getenv('USERPROFILE')),
-    font_size = 24,
-    audio_bitrate = '32k',
     -- The range of the CRF scale is 0–51, where 0 is lossless,
     -- 23 is the default, and 51 is worst quality possible.
     -- Insane values like 9999 still work but produce the worst quality.
@@ -17,10 +15,12 @@ local config = {
     -- Use the slowest preset that you have patience for.
     -- https://trac.ffmpeg.org/wiki/Encode/H.264
     preset = 'faster',
+    video_format = 'mp4', -- mp4, vp9, vp8
     video_width = -2,
     video_height = 480,
-    video_format = 'mp4', -- webm or mp4
+    audio_bitrate = '32k',
     mute_audio = false,
+    font_size = 24,
 }
 
 mpopt.read_options(config, 'videoclip')
@@ -43,7 +43,7 @@ local allowed_presets = {
 }
 
 ------------------------------------------------------------
--- utility functions
+-- Utility functions
 
 function string:endswith(suffix)
     return suffix == "" or self:sub(-#suffix) == suffix
@@ -125,14 +125,17 @@ local function set_video_settings()
     if config.video_format == 'mp4' then
         config.video_codec = 'libx264'
         config.video_extension = '.mp4'
-    else
+    elseif config.video_format == 'vp9' then
         config.video_codec = 'libvpx-vp9'
+        config.video_extension = '.webm'
+    else
+        config.video_codec = 'libvpx'
         config.video_extension = '.webm'
     end
 end
 
 ------------------------------------------------------------
--- provides interface for creating audio/video clips
+-- Provides interface for creating audio/video clips
 
 encoder = {}
 
@@ -266,7 +269,7 @@ function Menu:update()
 end
 
 ------------------------------------------------------------
--- main menu
+-- Main menu
 
 main_menu = Menu:new()
 
@@ -338,26 +341,50 @@ end
 pref_menu = Menu:new(main_menu)
 
 pref_menu.keybindings = {
-    { key = 'f', fn = function() pref_menu:toggle_video_format() end },
+    { key = 'f', fn = function() pref_menu:cycle_video_formats() end },
     { key = 'm', fn = function() pref_menu:toggle_mute_audio() end },
+    { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
 }
 
-function pref_menu:update()
-    local osd = OSD:new():size(config.font_size):align(4)
-    osd:bold('Preferences'):newline()
-    osd:bold('Video format: '):append(config.video_format):newline()
-    osd:bold('Mute audio: '):append(config.mute_audio and 'yes' or 'no'):newline()
-    osd:newline()
-    osd:bold('Bindings:'):newline()
-    osd:tab():bold('f: '):append('Toggle video format'):newline()
-    osd:tab():bold('m: '):append('Toggle silent video clips'):newline()
+pref_menu.resolutions = {
+    { w = config.video_width, h = config.video_height, },
+    { w = -2, h = 240, },
+    { w = -2, h = 360, },
+    { w = -2, h = 480, },
+    { w = -2, h = 720, },
+    { w = -2, h = 1080, },
+    { w = -2, h = 1440, },
+    { w = -2, h = 2160, },
+    selected = 1,
+}
 
-    self:overlay_draw(osd:get_text())
+pref_menu.formats = { 'mp4', 'vp9', 'vp8' }
+
+function pref_menu:get_selected_resolution()
+    local w = config.video_width
+    local h = config.video_height
+    w = w ~= -2 and w or 'auto'
+    h = h ~= -2 and h or 'auto'
+    return string.format('%s x %s', w, h)
 end
 
-function pref_menu:toggle_video_format()
-    config.video_format = config.video_format == 'mp4' and 'webm' or 'mp4'
+function pref_menu:cycle_resolutions()
+    self.resolutions.selected = self.resolutions.selected + 1 > #self.resolutions and 1 or self.resolutions.selected + 1
+    local res = self.resolutions[self.resolutions.selected]
+    config.video_width = res.w
+    config.video_height = res.h
+    self:update()
+end
+
+function pref_menu:cycle_video_formats()
+    local selected = 1
+    for i, v in ipairs(pref_menu.formats) do
+        if config.video_format == v then
+            selected = i
+        end
+    end
+    config.video_format = pref_menu.formats[selected + 1] or pref_menu.formats[1]
     set_video_settings()
     self:update()
 end
@@ -365,6 +392,21 @@ end
 function pref_menu:toggle_mute_audio()
     config.mute_audio = not config.mute_audio
     self:update()
+end
+
+function pref_menu:update()
+    local osd = OSD:new():size(config.font_size):align(4)
+    osd:bold('Preferences'):newline()
+    osd:bold('Video resolution: '):append(self:get_selected_resolution()):newline()
+    osd:bold('Video format: '):append(config.video_format):newline()
+    osd:bold('Mute audio: '):append(config.mute_audio and 'yes' or 'no'):newline()
+    osd:newline()
+    osd:bold('Bindings:'):newline()
+    osd:tab():bold('r: '):append('Cycle video resolutions'):newline()
+    osd:tab():bold('f: '):append('Cycle video formats'):newline()
+    osd:tab():bold('m: '):append('Toggle mute audio'):newline()
+
+    self:overlay_draw(osd:get_text())
 end
 
 ------------------------------------------------------------
