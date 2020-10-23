@@ -116,7 +116,7 @@ end
 
 encoder = {}
 
-encoder.create_videoclip = function(clip_filename)
+encoder.create_videoclip = function(clip_filename, muted)
     local clip_path = utils.join_path(config.video_folder_path, clip_filename .. '.mp4')
     return subprocess {
         'mpv',
@@ -132,7 +132,7 @@ encoder.create_videoclip = function(clip_filename)
         '--oacopts-add=compression_level=10',
         table.concat { '--start=', menu.timings['start'] },
         table.concat { '--end=', menu.timings['end'] },
-        table.concat { '--aid=', mp.get_property("aid") }, -- track number
+        table.concat { '--aid=', muted and 'no' or mp.get_property("aid") }, -- track number
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
         table.concat { '--ovcopts-add=crf=', config.video_quality },
@@ -182,10 +182,11 @@ encoder.create_clip = function(clip_type)
     local ret
     local location
 
-    if clip_type == 'video' then
+    if clip_type:match('video') ~= nil then
         location = config.video_folder_path
-        ret = encoder.create_videoclip(clip_filename)
-    elseif clip_type == 'audio' then
+        local muted = clip_type:match('mute') ~= nil
+        ret = encoder.create_videoclip(clip_filename, muted)
+    else
         location = config.audio_folder_path
         ret = encoder.create_audioclip(clip_filename)
     end
@@ -216,6 +217,7 @@ menu.keybinds = {
     { key = 'S', fn = function() menu.set_time_sub('start') end },
     { key = 'E', fn = function() menu.set_time_sub('end') end },
     { key = 'c', fn = function() encoder.create_clip('video') end },
+    { key = 'm', fn = function() encoder.create_clip('video_muted') end },
     { key = 'a', fn = function() encoder.create_clip('audio') end },
     { key = 'o', fn = function() mp.commandv('run', 'xdg-open', 'https://streamable.com/') end },
     { key = 'ESC', fn = function() menu.close() end },
@@ -258,6 +260,7 @@ menu.update = function()
     osd:newline()
     osd:bold('Create clip:'):newline()
     osd:tab():bold('c: '):append('video clip'):newline()
+    osd:tab():bold('m: '):append('video clip (silent)'):newline()
     osd:tab():bold('a: '):append('audio clip'):newline()
 
     menu.overlay_draw(osd:get_text())
