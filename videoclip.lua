@@ -228,7 +228,7 @@ function Menu:new(parent)
     local o = {
         parent = parent,
         overlay = parent and parent.overlay or mp.create_osd_overlay('ass-events'),
-        keybinds = { },
+        keybindings = { },
     }
     return setmetatable(o, self)
 end
@@ -242,14 +242,14 @@ function Menu:open()
     if self.parent then
         self.parent:close()
     end
-    for _, val in pairs(self.keybinds) do
+    for _, val in pairs(self.keybindings) do
         mp.add_key_binding(val.key, val.key, val.fn)
     end
     self:update()
 end
 
 function Menu:close()
-    for _, val in pairs(self.keybinds) do
+    for _, val in pairs(self.keybindings) do
         mp.remove_key_binding(val.key)
     end
     if self.parent then
@@ -270,7 +270,7 @@ end
 
 main_menu = Menu:new()
 
-main_menu.keybinds = {
+main_menu.keybindings = {
     { key = 's', fn = function() main_menu:set_time('start') end },
     { key = 'e', fn = function() main_menu:set_time('end') end },
     { key = 'S', fn = function() main_menu:set_time_sub('start') end },
@@ -337,7 +337,7 @@ end
 
 pref_menu = Menu:new(main_menu)
 
-pref_menu.keybinds = {
+pref_menu.keybindings = {
     { key = 'f', fn = function() pref_menu:toggle_video_format() end },
     { key = 'm', fn = function() pref_menu:toggle_mute_audio() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
