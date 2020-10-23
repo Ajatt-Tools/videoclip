@@ -8,20 +8,15 @@ local config = {
     -- relative paths (e.g. ~ for home dir) do NOT work.
     video_folder_path = string.format('%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
     audio_folder_path = string.format('%s/Music/', os.getenv("HOME") or os.getenv('USERPROFILE')),
-
     font_size = 24,
-
     audio_bitrate = '32k',
-
     -- The range of the CRF scale is 0–51, where 0 is lossless,
     -- 23 is the default, and 51 is worst quality possible.
     -- Insane values like 9999 still work but produce the worst quality.
     video_quality = 23,
-
     -- Use the slowest preset that you have patience for.
     -- https://trac.ffmpeg.org/wiki/Encode/H.264
     preset = 'faster',
-
     video_width = -2,
     video_height = 480,
     video_format = 'mp4', -- webm or mp4
