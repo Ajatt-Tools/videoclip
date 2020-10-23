@@ -135,7 +135,7 @@ end
 
 encoder = {}
 
-encoder.create_videoclip = function(clip_filename, muted)
+encoder.create_videoclip = function(clip_filename)
     local clip_path = utils.join_path(config.video_folder_path, clip_filename .. config.video_extension)
     return subprocess {
         'mpv',
@@ -150,8 +150,8 @@ encoder.create_videoclip = function(clip_filename, muted)
         '--oacopts-add=compression_level=10',
         table.concat { '--start=', menu.timings['start'] },
         table.concat { '--end=', menu.timings['end'] },
-        table.concat { '--aid=', muted and 'no' or mp.get_property("aid") }, -- track number
         table.concat { '--ovc=', config.video_codec },
+        table.concat { '--aid=', config.mute_audio and 'no' or mp.get_property("aid") }, -- track number
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
         table.concat { '--ovcopts-add=crf=', config.video_quality },
@@ -201,10 +201,9 @@ encoder.create_clip = function(clip_type)
     local ret
     local location
 
-    if clip_type:match('video') ~= nil then
+    if clip_type == 'video' then
         location = config.video_folder_path
-        local muted = clip_type:match('mute') ~= nil
-        ret = encoder.create_videoclip(clip_filename, muted)
+        ret = encoder.create_videoclip(clip_filename)
     else
         location = config.audio_folder_path
         ret = encoder.create_audioclip(clip_filename)
