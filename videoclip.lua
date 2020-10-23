@@ -24,7 +24,7 @@ local config = {
 }
 
 mpopt.read_options(config, 'videoclip')
-local menu
+local main_menu
 local pref_menu
 local encoder
 local OSD
@@ -92,8 +92,8 @@ local function construct_filename()
     filename = string.format(
             '%s_(%s-%s)',
             filename,
-            human_readable_time(menu.timings['start']),
-            human_readable_time(menu.timings['end'])
+            human_readable_time(main_menu.timings['start']),
+            human_readable_time(main_menu.timings['end'])
     )
 
     return filename
@@ -149,9 +149,9 @@ encoder.create_videoclip = function(clip_filename)
         '--oacopts-add=vbr=on',
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
-        table.concat { '--start=', menu.timings['start'] },
-        table.concat { '--end=', menu.timings['end'] },
         table.concat { '--ovc=', config.video_codec },
+        table.concat { '--start=', main_menu.timings['start'] },
+        table.concat { '--end=', main_menu.timings['end'] },
         table.concat { '--aid=', config.mute_audio and 'no' or mp.get_property("aid") }, -- track number
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
@@ -176,8 +176,8 @@ encoder.create_audioclip = function(clip_filename)
         '--oacopts-add=vbr=on',
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
-        table.concat { '--start=', menu.timings['start'] },
-        table.concat { '--end=', menu.timings['end'] },
+        table.concat { '--start=', main_menu.timings['start'] },
+        table.concat { '--end=', main_menu.timings['end'] },
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
@@ -186,12 +186,12 @@ encoder.create_audioclip = function(clip_filename)
 end
 
 encoder.create_clip = function(clip_type)
-    menu:close();
+    main_menu:close();
     if clip_type == nil then
         return
     end
 
-    if not menu.timings:validate() then
+    if not main_menu.timings:validate() then
         mp.osd_message("Wrong timings. Aborting.", 2)
         return
     end
@@ -215,7 +215,7 @@ encoder.create_clip = function(clip_type)
     else
         mp.osd_message(string.format("Clip saved to %s.", location), 2)
     end
-    menu.timings:reset()
+    main_menu.timings:reset()
 end
 
 ------------------------------------------------------------
@@ -268,28 +268,28 @@ end
 ------------------------------------------------------------
 -- main menu
 
-menu = Menu:new()
+main_menu = Menu:new()
 
-menu.keybinds = {
-    { key = 's', fn = function() menu:set_time('start') end },
-    { key = 'e', fn = function() menu:set_time('end') end },
-    { key = 'S', fn = function() menu:set_time_sub('start') end },
-    { key = 'E', fn = function() menu:set_time_sub('end') end },
-    { key = 'r', fn = function() menu:reset_timings() end },
+main_menu.keybinds = {
+    { key = 's', fn = function() main_menu:set_time('start') end },
+    { key = 'e', fn = function() main_menu:set_time('end') end },
+    { key = 'S', fn = function() main_menu:set_time_sub('start') end },
+    { key = 'E', fn = function() main_menu:set_time_sub('end') end },
+    { key = 'r', fn = function() main_menu:reset_timings() end },
     { key = 'c', fn = function() encoder.create_clip('video') end },
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() encoder.create_clip('audio') end },
     { key = 'p', fn = function() pref_menu:open() end },
     { key = 'o', fn = function() mp.commandv('run', 'xdg-open', 'https://streamable.com/') end },
-    { key = 'ESC', fn = function() menu:close() end },
+    { key = 'ESC', fn = function() main_menu:close() end },
 }
 
-function menu:set_time(property)
+function main_menu:set_time(property)
     self.timings[property] = mp.get_property_number('time-pos')
     self:update()
 end
 
-function menu:set_time_sub(property)
+function main_menu:set_time_sub(property)
     local sub_delay = mp.get_property_native("sub-delay")
     local time_pos = mp.get_property_number(string.format("sub-%s", property))
 
@@ -302,17 +302,17 @@ function menu:set_time_sub(property)
     self:update()
 end
 
-function menu:reset_timings()
+function main_menu:reset_timings()
     self.timings = Timings:new()
     self:update()
 end
 
-menu.open = function()
-    menu.timings = menu.timings or Timings:new()
-    Menu.open(menu)
+main_menu.open = function()
+    main_menu.timings = main_menu.timings or Timings:new()
+    Menu.open(main_menu)
 end
 
-function menu:update()
+function main_menu:update()
     local osd = OSD:new():size(config.font_size):align(4)
     osd:bold('Clip creator'):newline()
     osd:tab():bold('Start time: '):append(human_readable_time(self.timings['start'])):newline()
@@ -451,4 +451,4 @@ set_video_settings()
 ------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
-mp.add_key_binding('c', 'videoclip-menu-open', menu.open)
+mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
