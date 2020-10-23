@@ -3,6 +3,20 @@ Easily create video and audio clips with mpv in a few keypresses. Videoclips are
 ![screenshot](https://user-images.githubusercontent.com/69171671/92329784-683ff900-f059-11ea-9514-e8718e42dd5a.jpg)
 
 ## Installation
+### Manually
+
+Save [videoclip.lua](https://raw.githubusercontent.com/Ajatt-Tools/videoclip/master/videoclip.lua)
+in  the [mpv scripts](https://github.com/mpv-player/mpv/wiki/User-Scripts) folder:
+
+| OS | Location |
+| --- | --- |
+| GNU/Linux | `~/.config/mpv/scripts/` |
+| Windows | `C:/Users/Username/AppData/Roaming/mpv/scripts/` |
+
+Note: in [Celluloid](https://www.archlinux.org/packages/community/x86_64/celluloid/)
+user scripts are installed by switching to the "Plugins" tab
+in the preferences dialog and dropping the files there.
+
 ### Install as a part of your [dotfiles](https://wiki.archlinux.org/index.php/Dotfiles#Tracking_dotfiles_directly_with_Git)
 ```
 $ config submodule add 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
