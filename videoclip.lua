@@ -136,7 +136,7 @@ end
 encoder = {}
 
 encoder.create_videoclip = function(clip_filename, muted)
-    local clip_path = utils.join_path(config.video_folder_path, clip_filename .. '.mp4')
+    local clip_path = utils.join_path(config.video_folder_path, clip_filename .. config.video_extension)
     return subprocess {
         'mpv',
         mp.get_property('path'),
@@ -145,13 +145,13 @@ encoder.create_videoclip = function(clip_filename, muted)
         '--no-sub',
         '--audio-channels=2',
         '--oac=libopus',
-        '--ovc=libx264',
         '--oacopts-add=vbr=on',
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
         table.concat { '--start=', menu.timings['start'] },
         table.concat { '--end=', menu.timings['end'] },
         table.concat { '--aid=', muted and 'no' or mp.get_property("aid") }, -- track number
+        table.concat { '--ovc=', config.video_codec },
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
         table.concat { '--ovcopts-add=crf=', config.video_quality },
