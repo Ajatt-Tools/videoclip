@@ -200,6 +200,53 @@ encoder.create_clip = function(clip_type)
 end
 
 ------------------------------------------------------------
+-- Menu interface
+
+local Menu = {}
+Menu.__index = Menu
+
+function Menu:new(parent)
+    local o = {
+        parent = parent,
+        overlay = parent and parent.overlay or mp.create_osd_overlay('ass-events'),
+        keybinds = { },
+    }
+    return setmetatable(o, self)
+end
+
+function Menu:overlay_draw(text)
+    self.overlay.data = text
+    self.overlay:update()
+end
+
+function Menu:open()
+    if self.parent then
+        self.parent:close()
+    end
+    for _, val in pairs(self.keybinds) do
+        mp.add_key_binding(val.key, val.key, val.fn)
+    end
+    self:update()
+end
+
+function Menu:close()
+    for _, val in pairs(self.keybinds) do
+        mp.remove_key_binding(val.key)
+    end
+    if self.parent then
+        self.parent:open()
+    else
+        self.overlay:remove()
+    end
+end
+
+function Menu:update()
+    local osd = OSD:new():size(config.font_size):align(4)
+    osd:append('Dummy menu.'):newline()
+    self:overlay_draw(osd:get_text())
+end
+
+------------------------------------------------------------
 -- main menu
 
 menu = {}
