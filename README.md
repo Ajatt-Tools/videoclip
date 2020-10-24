@@ -1,6 +1,12 @@
 ![screenshot](https://user-images.githubusercontent.com/69171671/97077527-0836ef00-15d4-11eb-92a5-bfa236a6b118.png)
 
 # videoclip
+
+![GitHub](https://img.shields.io/github/license/Ajatt-Tools/videoclip)
+![GitHub top language](https://img.shields.io/github/languages/top/Ajatt-Tools/videoclip)
+![Lines of code](https://img.shields.io/tokei/lines/github/Ajatt-Tools/videoclip)
+[![Matrix](https://img.shields.io/badge/Japanese_study_room-join-green.svg)](https://app.element.io/#/room/#djt:g33k.se)
+
 Easily create video and audio clips with mpv in a few keypresses.
 Videoclips are saved as `.mp4` or `.webm`.
 
