@@ -27,7 +27,7 @@ in the preferences dialog and dropping the files there.
 
 ### Using curl
 ```
-$ curl -o ~/.config/mpv/scripts/subs2srs.lua 'https://raw.githubusercontent.com/Ajatt-Tools/mpvacious/master/subs2srs.lua'
+$ curl -o ~/.config/mpv/scripts/videoclip.lua 'https://raw.githubusercontent.com/Ajatt-Tools/videoclip/master/videoclip.lua'
 ```
 ### Using git
 If you already have your dotfiles set up according to
@@ -48,18 +48,20 @@ function load(relative_path) dofile(mpv_scripts_dir_path .. relative_path) end
 load("videoclip/videoclip.lua")
 ```
 ### Updating with git
-Submodules are updated using standard git commands:
-```
-$ config submodule update --remote --merge
-```
-or
-```
-$ cd ~/.config/mpv/scripts/videoclip && git pull
-```
+| Install method | Command |
+| --- | --- |
+| Submodules | `$ config submodule update --remote --merge` |
+| Plain git | `$ cd ~/.config/mpv/scripts/videoclip && git pull` |
+
 ## Configuration
-Configuration file is located at ```~/.config/mpv/script-opts/videoclip.conf```
-and should be created by the user if needed. If a parameter is not specified
-in the config file, the default value will be used.
+The config file should be created by the user, if needed.
+
+| OS | Config location |
+| --- | --- |
+| GNU/Linux | `~/.config/mpv/script-opts/videoclip.conf` |
+| Windows | `C:/Users/Username/AppData/Roaming/mpv/script-opts/videoclip.conf` |
+
+If a parameter is not specified in the config file, the default value will be used.
 mpv doesn't tolerate spaces before and after `=`.
 
 Example configuration file:
@@ -92,8 +94,14 @@ audio_bitrate=32k
 # Create silent videoclips by default. Possble values: `yes` or `no`.
 mute_audio=yes
 ```
-Key bindings are configured in ```~/.config/mpv/input.conf```.
-This step is not necessary.
+### Key bindings
+
+| OS | Config location |
+| --- | --- |
+| GNU/Linux | `~/.config/mpv/input.conf` |
+| Windows | `C:/Users/Username/AppData/Roaming/mpv/input.conf` |
+
+Add this line if you want to change the key that opens the script's menu.
 ```
 c script-binding videoclip-menu-open
 ```
