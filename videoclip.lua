@@ -46,10 +46,6 @@ local allowed_presets = {
 ------------------------------------------------------------
 -- Utility functions
 
-function string:endswith(suffix)
-    return suffix == "" or self:sub(-#suffix) == suffix
-end
-
 local function remove_extension(filename)
     return filename:gsub('%.%w+$', '')
 end
@@ -133,6 +129,22 @@ local function set_video_settings()
         config.video_codec = 'libvpx'
         config.video_extension = '.webm'
     end
+end
+
+local function validate_config()
+    if not config.audio_bitrate:match('^%d+[kK]$') then
+        config.audio_bitrate = (tonumber(config.audio_bitrate) or 32) .. 'k'
+    end
+
+    if not config.video_bitrate:match('^%d+[kKmM]$') then
+        config.video_bitrate = '1M'
+    end
+
+    if not allowed_presets[config.preset] then
+        config.preset = 'faster'
+    end
+
+    set_video_settings()
 end
 
 ------------------------------------------------------------
@@ -480,19 +492,7 @@ function Timings:validate()
 end
 
 ------------------------------------------------------------
--- Validate config
-
-if not config.audio_bitrate:endswith('k') then
-    config.audio_bitrate = config.audio_bitrate .. 'k'
-end
-
-if not allowed_presets[config.preset] then
-    config.preset = 'faster'
-end
-
-set_video_settings()
-
-------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
+validate_config()
 mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
