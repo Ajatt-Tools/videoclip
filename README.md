@@ -1,5 +1,6 @@
 # videoclip
-Easily create video and audio clips with mpv in a few keypresses. Videoclips are saved as `.mp4`.
+Easily create video and audio clips with mpv in a few keypresses.
+Videoclips are saved as `.mp4` or `.webm`.
 ![screenshot](https://user-images.githubusercontent.com/69171671/92329784-683ff900-f059-11ea-9514-e8718e42dd5a.jpg)
 
 ## Installation
@@ -17,22 +18,29 @@ Note: in [Celluloid](https://www.archlinux.org/packages/community/x86_64/cellulo
 user scripts are installed by switching to the "Plugins" tab
 in the preferences dialog and dropping the files there.
 
-### Install as a part of your [dotfiles](https://wiki.archlinux.org/index.php/Dotfiles#Tracking_dotfiles_directly_with_Git)
+### Using curl
+```
+$ curl -o ~/.config/mpv/scripts/subs2srs.lua 'https://raw.githubusercontent.com/Ajatt-Tools/mpvacious/master/subs2srs.lua'
+```
+### Using git
+If you already have your dotfiles set up according to
+[Arch Wiki recommendations](https://wiki.archlinux.org/index.php/Dotfiles#Tracking_dotfiles_directly_with_Git), execute:
 ```
 $ config submodule add 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
 ```
-### Install by cloning the repo
+If not, either proceed to Arch Wiki and come back when you're done, or simply clone the repo:
 ```
 $ git clone 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
 ```
-### Enable the addon
-After you've downloaded the addon, open or create  ```~/.config/mpv/scripts/modules.lua``` and add these lines:
+Since you've just cloned the script to its own subfolder,
+you need to tell mpv where to look for it.
+Open or create  `~/.config/mpv/scripts/modules.lua` and add these lines:
 ```
 local mpv_scripts_dir_path = os.getenv("HOME") ..  "/.config/mpv/scripts/"
 function load(relative_path) dofile(mpv_scripts_dir_path .. relative_path) end
 load("videoclip/videoclip.lua")
 ```
-## Updating
+### Updating with git
 Submodules are updated using standard git commands:
 ```
 $ config submodule update --remote --merge
