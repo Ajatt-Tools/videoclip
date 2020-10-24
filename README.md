@@ -1,7 +1,8 @@
+![screenshot](https://user-images.githubusercontent.com/69171671/97077527-0836ef00-15d4-11eb-92a5-bfa236a6b118.png)
+
 # videoclip
 Easily create video and audio clips with mpv in a few keypresses.
 Videoclips are saved as `.mp4` or `.webm`.
-![screenshot](https://user-images.githubusercontent.com/69171671/92329784-683ff900-f059-11ea-9514-e8718e42dd5a.jpg)
 
 ## Installation
 ### Manually
