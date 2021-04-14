@@ -1,6 +1,7 @@
 local mp = require('mp')
 local mpopt = require('mp.options')
 local utils = require('mp.utils')
+local OSD = require('osd_styler')
 
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
@@ -30,7 +31,6 @@ mpopt.read_options(config, 'videoclip')
 local main_menu
 local pref_menu
 local encoder
-local OSD
 local Timings
 
 local allowed_presets = {
@@ -467,50 +467,6 @@ function pref_menu:update()
     osd:tab():bold('e: '):append('Toggle embed subtitles'):newline()
 
     self:overlay_draw(osd:get_text())
-end
-
-------------------------------------------------------------
--- Helper class for styling OSD messages
--- http://docs.aegisub.org/3.2/ASS_Tags/
-
-OSD = {}
-OSD.__index = OSD
-
-function OSD:new()
-    return setmetatable({ text = {} }, self)
-end
-
-function OSD:append(s)
-    table.insert(self.text, s)
-    return self
-end
-
-function OSD:bold(s)
-    return self:append(string.format([[{\b1}%s{\b0}]], s))
-end
-
-function OSD:italics(s)
-    return self:append('{\\i1}'):append(s):append('{\\i0}')
-end
-
-function OSD:newline()
-    return self:append([[\N]])
-end
-
-function OSD:tab()
-    return self:append([[\h\h\h\h]])
-end
-
-function OSD:size(size)
-    return self:append(string.format([[{\fs%s}]], size))
-end
-
-function OSD:align(number)
-    return self:append(string.format([[{\an%s}]], number))
-end
-
-function OSD:get_text()
-    return table.concat(self.text)
 end
 
 ------------------------------------------------------------
