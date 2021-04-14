@@ -117,14 +117,15 @@ local function construct_filename()
     return filename
 end
 
-local function subprocess(args)
-    return mp.command_native {
+local function subprocess_async(args, on_complete)
+    local command_table = {
         name = "subprocess",
         playback_only = false,
         capture_stdout = true,
         capture_stderr = true,
         args = args
     }
+    return mp.command_native_async(command_table, on_complete)
 end
 
 local function force_resolution(width, height, clip_fn, ...)
@@ -201,7 +202,7 @@ function encoder.append_embed_subs_args(args)
     return args
 end
 
-encoder.create_videoclip = function(clip_filename)
+encoder.mkargs_video = function(clip_filename)
     local clip_path = utils.join_path(config.video_folder_path, clip_filename .. config.video_extension)
     local args = {
         'mpv',
@@ -232,12 +233,12 @@ encoder.create_videoclip = function(clip_filename)
         args = encoder.append_embed_subs_args(args)
     end
 
-    return subprocess(args)
+    return args
 end
 
-encoder.create_audioclip = function(clip_filename)
+encoder.mkargs_audio = function(clip_filename)
     local clip_path = utils.join_path(config.audio_folder_path, clip_filename .. '.ogg')
-    return subprocess {
+    return {
         'mpv',
         mp.get_property('path'),
         '--loop-file=no',
@@ -273,22 +274,26 @@ encoder.create_clip = function(clip_type)
     local clip_filename = construct_filename()
     mp.osd_message("Please wait...", 9999)
 
-    local ret
+    local args
     local location
 
     if clip_type == 'video' then
+        args = encoder.mkargs_video(clip_filename)
         location = config.video_folder_path
-        ret = encoder.create_videoclip(clip_filename)
     else
+        args = encoder.mkargs_audio(clip_filename)
         location = config.audio_folder_path
-        ret = encoder.create_audioclip(clip_filename)
     end
 
-    if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
-        mp.osd_message(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), 5)
-    else
-        mp.osd_message(string.format("Clip saved to %s.", location), 2)
+    local process_result = function(_, ret, _)
+        if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
+            mp.osd_message(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), 5)
+        else
+            mp.osd_message(string.format("Clip saved to %s.", location), 2)
+        end
     end
+
+    subprocess_async(args, process_result)
     main_menu.timings:reset()
 end
 
