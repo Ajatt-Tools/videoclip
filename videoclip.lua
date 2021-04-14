@@ -1,3 +1,4 @@
+local mp = require('mp')
 local mpopt = require('mp.options')
 local utils = require('mp.utils')
 
