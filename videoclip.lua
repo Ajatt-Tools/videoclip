@@ -23,6 +23,7 @@ local config = {
     audio_bitrate = '32k',
     mute_audio = false,
     font_size = 24,
+    embed_subs = true,
 }
 
 mpopt.read_options(config, 'videoclip')
@@ -153,9 +154,37 @@ end
 
 encoder = {}
 
+function encoder.get_active_track(track_type)
+    local track_list = mp.get_property_native('track-list')
+    for _, track in pairs(track_list) do
+        if track.type == track_type and track.selected == true then
+            return track
+        end
+    end
+    return nil
+end
+
+function encoder.get_ext_subs_fp()
+    local track = encoder.get_active_track('sub')
+
+    if track and track.external == true then
+        return track['external-filename']
+    end
+end
+
+function encoder.append_embed_subs_args(args)
+    local ext_subs_fp = encoder.get_ext_subs_fp()
+    if ext_subs_fp then
+        table.insert(args, #args, table.concat { '--sub-files-append=', ext_subs_fp })
+    end
+    table.insert(args, #args, table.concat { '--sid=', mp.get_property("sid") })
+    table.insert(args, #args, table.concat { '--sub-delay=', mp.get_property("sub-delay") })
+    return args
+end
+
 encoder.create_videoclip = function(clip_filename)
     local clip_path = utils.join_path(config.video_folder_path, clip_filename .. config.video_extension)
-    return subprocess {
+    local args = {
         'mpv',
         mp.get_property('path'),
         '--loop-file=no',
@@ -179,6 +208,12 @@ encoder.create_videoclip = function(clip_filename)
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
         table.concat { '-o=', clip_path }
     }
+
+    if config.embed_subs == true then
+        args = encoder.append_embed_subs_args(args)
+    end
+
+    return subprocess(args)
 end
 
 encoder.create_audioclip = function(clip_filename)
