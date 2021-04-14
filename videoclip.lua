@@ -176,6 +176,7 @@ encoder.create_videoclip = function(clip_filename)
         table.concat { '--ovcopts-add=crf=', config.video_quality },
         table.concat { '--ovcopts-add=preset=', config.preset },
         table.concat { '--vf-add=scale=', config.video_width, ':', config.video_height },
+        table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
         table.concat { '-o=', clip_path }
     }
 end
@@ -199,6 +200,7 @@ encoder.create_audioclip = function(clip_filename)
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
+        table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
         table.concat { '-o=', clip_path }
     }
 end
