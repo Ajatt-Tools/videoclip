@@ -379,8 +379,8 @@ pref_menu.formats = { 'mp4', 'vp9', 'vp8' }
 function pref_menu:get_selected_resolution()
     local w = config.video_width
     local h = config.video_height
-    w = w ~= -2 and w or 'auto'
-    h = h ~= -2 and h or 'auto'
+    w = w == -2 and 'auto' or w
+    h = h == -2 and 'auto' or h
     return string.format('%s x %s', w, h)
 end
 
