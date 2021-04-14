@@ -421,6 +421,7 @@ pref_menu.keybindings = {
     { key = 'm', fn = function() pref_menu:toggle_mute_audio() end },
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
     { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
+    { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
 }
 
