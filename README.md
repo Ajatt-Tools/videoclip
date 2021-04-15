@@ -30,6 +30,22 @@ Note: in [Celluloid](https://www.archlinux.org/packages/community/x86_64/cellulo
 user scripts are installed by switching to the "Plugins" tab
 in the preferences dialog and dropping the files there.
 
+<details>
+
+<summary>Expected directory tree</summary>
+
+```
+~/.config/mpv/scripts
+|-- other_addon_1
+|-- other_addon_2
+`-- videoclip
+    |-- main.lua
+    |-- ...
+    `-- videoclip.lua
+```
+
+</details>
+
 ### Using git
 
 If you already have your dotfiles set up according to
