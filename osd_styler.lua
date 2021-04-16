@@ -22,11 +22,11 @@ local OSD = {}
 OSD.__index = OSD
 
 function OSD:new()
-    return setmetatable({ text = {} }, self)
+    return setmetatable({ messages = {} }, self)
 end
 
 function OSD:append(s)
-    table.insert(self.text, s)
+    table.insert(self.messages, s)
     return self
 end
 
@@ -47,7 +47,7 @@ function OSD:align(number)
 end
 
 function OSD:get_text()
-    return table.concat(self.text)
+    return table.concat(self.messages)
 end
 
 function OSD:color(code)
