@@ -108,9 +108,6 @@ preset=faster
 audio_bitrate=32k
 # Create silent videoclips by default. Possble values: `yes` or `no`.
 mute_audio=yes
-
-# Burn subtitles into the video, if present. `yes` or `no`.
-embed_subs=yes
 ```
 
 ### Key bindings

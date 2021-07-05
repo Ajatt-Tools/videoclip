@@ -43,7 +43,6 @@ local config = {
     audio_bitrate = '32k',
     mute_audio = false,
     font_size = 24,
-    embed_subs = true,
 }
 
 mpopt.read_options(config, 'videoclip')
@@ -229,7 +228,7 @@ encoder.mkargs_video = function(clip_filename)
         table.concat { '-o=', clip_path }
     }
 
-    if config.embed_subs == true then
+    if mp.get_property_bool("sub-visibility") == true then
         args = encoder.append_embed_subs_args(args)
     end
 
@@ -420,7 +419,6 @@ pref_menu.keybindings = {
     { key = 'f', fn = function() pref_menu:cycle_video_formats() end },
     { key = 'm', fn = function() pref_menu:toggle_mute_audio() end },
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
-    { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
     { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
 }
@@ -472,23 +470,16 @@ function pref_menu:toggle_mute_audio()
     self:update()
 end
 
-function pref_menu:toggle_embed_subtitles()
-    config.embed_subs = not config.embed_subs
-    self:update()
-end
-
 function pref_menu:update()
     local osd = OSD:new():size(config.font_size):align(4)
     osd:submenu('Preferences'):newline()
     osd:tab():item('Video resolution: '):append(self:get_selected_resolution()):newline()
     osd:tab():item('Video format: '):append(config.video_format):newline()
     osd:tab():item('Mute audio: '):append(config.mute_audio and 'yes' or 'no'):newline()
-    osd:tab():item('Embed subtitles: '):append(config.embed_subs and 'yes' or 'no'):newline()
     osd:submenu('Bindings'):newline()
     osd:tab():item('r: '):append('Cycle video resolutions'):newline()
     osd:tab():item('f: '):append('Cycle video formats'):newline()
     osd:tab():item('m: '):append('Toggle mute audio'):newline()
-    osd:tab():item('e: '):append('Toggle embed subtitles'):newline()
 
     self:overlay_draw(osd:get_text())
 end
