@@ -40,8 +40,8 @@ local config = {
     video_bitrate = '1M',
     video_width = -2,
     video_height = 480,
-    audio_bitrate = '32k',
-    mute_audio = false,
+    audio_format = 'opus', -- aac, opus
+    audio_bitrate = '32k', -- 32k, 64k, 128k, 256k. aac requires higher bitrates.
     font_size = 24,
 }
 
@@ -139,7 +139,7 @@ local function force_resolution(width, height, clip_fn, ...)
     config.video_height = cached_prefs.video_height
 end
 
-local function set_video_settings()
+local function set_encoding_settings()
     if config.video_format == 'mp4' then
         config.video_codec = 'libx264'
         config.video_extension = '.mp4'
@@ -149,6 +149,12 @@ local function set_video_settings()
     else
         config.video_codec = 'libvpx'
         config.video_extension = '.webm'
+    end
+
+    if config.audio_format == 'aac' then
+        config.audio_codec = 'aac'
+    else
+        config.audio_codec = 'libopus'
     end
 end
 
@@ -165,7 +171,7 @@ local function validate_config()
         config.preset = 'faster'
     end
 
-    set_video_settings()
+    set_encoding_settings()
 end
 
 ------------------------------------------------------------
@@ -210,14 +216,15 @@ encoder.mkargs_video = function(clip_filename)
         '--no-ocopy-metadata',
         '--no-sub',
         '--audio-channels=2',
-        '--oac=libopus',
         '--oacopts-add=vbr=on',
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
         table.concat { '--ovc=', config.video_codec },
+        table.concat { '--oac=', config.audio_codec },
         table.concat { '--start=', main_menu.timings['start'] },
         table.concat { '--end=', main_menu.timings['end'] },
-        table.concat { '--aid=', config.mute_audio and 'no' or mp.get_property("aid") }, -- track number
+        table.concat { '--aid=', mp.get_property("aid") }, -- track number
+        table.concat { '--mute=', mp.get_property("mute") },
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--ovcopts-add=b=', config.video_bitrate },
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
@@ -245,10 +252,10 @@ encoder.mkargs_audio = function(clip_filename)
         '--no-sub',
         '--audio-channels=2',
         '--video=no',
-        '--oac=libopus',
         '--oacopts-add=vbr=on',
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
+        table.concat { '--oac=', config.audio_codec },
         table.concat { '--start=', main_menu.timings['start'] },
         table.concat { '--end=', main_menu.timings['end'] },
         table.concat { '--volume=', mp.get_property('volume') },
@@ -417,8 +424,10 @@ pref_menu = Menu:new(main_menu)
 
 pref_menu.keybindings = {
     { key = 'f', fn = function() pref_menu:cycle_video_formats() end },
+    { key = 'a', fn = function() pref_menu:cycle_audio_formats() end },
     { key = 'm', fn = function() pref_menu:toggle_mute_audio() end },
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
+    { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
     { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
 }
@@ -435,7 +444,8 @@ pref_menu.resolutions = {
     selected = 1,
 }
 
-pref_menu.formats = { 'mp4', 'vp9', 'vp8' }
+pref_menu.vid_formats = { 'mp4', 'vp9', 'vp8', }
+pref_menu.aud_formats = { 'aac', 'opus', }
 
 function pref_menu:get_selected_resolution()
     local w = config.video_width
@@ -453,34 +463,54 @@ function pref_menu:cycle_resolutions()
     self:update()
 end
 
-function pref_menu:cycle_video_formats()
+
+function pref_menu:cycle_formats(config_type)
+    local formats
+    if config_type == 'video_format' then
+        formats = pref_menu.vid_formats
+    else
+        formats = pref_menu.aud_formats
+    end
+
     local selected = 1
-    for i, v in ipairs(pref_menu.formats) do
-        if config.video_format == v then
+    for i, format in ipairs(formats) do
+        if config[config_type] == format then
             selected = i
+            break
         end
     end
-    config.video_format = pref_menu.formats[selected + 1] or pref_menu.formats[1]
-    set_video_settings()
+    config[config_type] = formats[selected + 1] or formats[1]
+    set_encoding_settings()
     self:update()
 end
 
+function pref_menu:cycle_video_formats()
+    pref_menu:cycle_formats('video_format')
+end
+
+function pref_menu:cycle_audio_formats()
+    pref_menu:cycle_formats('audio_format')
+end
+
 function pref_menu:toggle_mute_audio()
-    config.mute_audio = not config.mute_audio
+    mp.commandv("cycle", "mute")
+    self:update()
+end
+
+function pref_menu:toggle_embed_subtitles()
+    mp.commandv("cycle", "sub-visibility")
     self:update()
 end
 
 function pref_menu:update()
     local osd = OSD:new():size(config.font_size):align(4)
     osd:submenu('Preferences'):newline()
-    osd:tab():item('Video resolution: '):append(self:get_selected_resolution()):newline()
-    osd:tab():item('Video format: '):append(config.video_format):newline()
-    osd:tab():item('Mute audio: '):append(config.mute_audio and 'yes' or 'no'):newline()
-    osd:submenu('Bindings'):newline()
-    osd:tab():item('r: '):append('Cycle video resolutions'):newline()
-    osd:tab():item('f: '):append('Cycle video formats'):newline()
-    osd:tab():item('m: '):append('Toggle mute audio'):newline()
-
+    osd:tab():item('r: Video resolution: '):append(self:get_selected_resolution()):newline()
+    osd:tab():item('f: Video format: '):append(config.video_format):newline()
+    osd:tab():item('a: Audio format: '):append(config.audio_format):newline()
+    osd:tab():item('b: Audio bitrate: '):append(config.audio_bitrate):newline()
+    osd:tab():item('m: Mute audio: '):append(mp.get_property("mute")):newline()
+    osd:tab():item('e: Embed subtitles: '):append(mp.get_property("sub-visibility")):newline()
     self:overlay_draw(osd:get_text())
 end
 
