@@ -153,8 +153,10 @@ local function set_encoding_settings()
 
     if config.audio_format == 'aac' then
         config.audio_codec = 'aac'
+        config.audio_extension = '.aac'
     else
         config.audio_codec = 'libopus'
+        config.audio_extension = '.opus'
     end
 end
 
@@ -243,7 +245,7 @@ encoder.mkargs_video = function(clip_filename)
 end
 
 encoder.mkargs_audio = function(clip_filename)
-    local clip_path = utils.join_path(config.audio_folder_path, clip_filename .. '.ogg')
+    local clip_path = utils.join_path(config.audio_folder_path, clip_filename .. config.audio_extension)
     return {
         'mpv',
         mp.get_property('path'),
