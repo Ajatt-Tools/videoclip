@@ -438,6 +438,7 @@ pref_menu.keybindings = {
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
     { key = 'b', fn = function() pref_menu:cycle_audio_bitrates() end },
     { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
+    { key = 's', fn = function() pref_menu:save() end },
     { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
 }
@@ -536,7 +537,32 @@ function pref_menu:update()
     osd:tab():item('b: Audio bitrate: '):append(config.audio_bitrate):newline()
     osd:tab():item('m: Mute audio: '):append(mp.get_property("mute")):newline()
     osd:tab():item('e: Embed subtitles: '):append(mp.get_property("sub-visibility")):newline()
+    osd:tab():item('s: Save preferences'):newline()
     self:overlay_draw(osd:get_text())
+end
+
+function pref_menu:save()
+    local ignore_list = {
+        video_extension = true,
+        audio_extension = true,
+        video_codec = true,
+        audio_codec = true,
+    }
+    local mpv_dirpath = string.gsub(mp.get_script_directory(), "scripts/%w+", "")
+    local config_filepath = utils.join_path(mpv_dirpath, 'script-opts/videoclip.conf')
+    local handle = io.open(config_filepath, 'w')
+    if handle ~= nil then
+        handle:write(string.format("# Written by videoclip on %s.\n", os.date()))
+        for key, value in pairs(config) do
+            if ignore_list[key] == nil then
+                handle:write(string.format('%s=%s\n', key, value))
+            end
+        end
+        handle:close()
+        notify("Settings saved.", "info", 2)
+    else
+        notify(string.format("Couldn't open %s.", config_filepath), "error", 4)
+    end
 end
 
 ------------------------------------------------------------
