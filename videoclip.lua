@@ -427,6 +427,7 @@ pref_menu.keybindings = {
     { key = 'a', fn = function() pref_menu:cycle_audio_formats() end },
     { key = 'm', fn = function() pref_menu:toggle_mute_audio() end },
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
+    { key = 'b', fn = function() pref_menu:cycle_audio_bitrates() end },
     { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
     { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
@@ -441,6 +442,15 @@ pref_menu.resolutions = {
     { w = -2, h = 1080, },
     { w = -2, h = 1440, },
     { w = -2, h = 2160, },
+    selected = 1,
+}
+pref_menu.audio_bitrates = {
+    config.audio_bitrate,
+    '32k',
+    '64k',
+    '128k',
+    '256k',
+    '384k',
     selected = 1,
 }
 
@@ -460,6 +470,12 @@ function pref_menu:cycle_resolutions()
     local res = self.resolutions[self.resolutions.selected]
     config.video_width = res.w
     config.video_height = res.h
+    self:update()
+end
+
+function pref_menu:cycle_audio_bitrates()
+    self.audio_bitrates.selected = self.audio_bitrates.selected + 1 > #self.audio_bitrates and 1 or self.audio_bitrates.selected + 1
+    config.audio_bitrate = self.audio_bitrates[self.audio_bitrates.selected]
     self:update()
 end
 
