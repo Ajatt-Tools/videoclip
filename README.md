@@ -104,10 +104,10 @@ video_quality=23
 preset=faster
 
 # Audio settings
-# Sane values for audio bitrate are from 16k to 64k.
+# Available formats: opus or aac
+audio_format=opus
+# Opus sounds good at low bitrates 32-64k, but aac requires 128-256k.
 audio_bitrate=32k
-# Create silent videoclips by default. Possble values: `yes` or `no`.
-mute_audio=yes
 ```
 
 ### Key bindings
@@ -128,3 +128,11 @@ c script-binding videoclip-menu-open
 - Open a file in mpv and press `c` to open the script menu.
 - Follow the onscreen instructions. You need to set the `start point`,
 `end point`, and then press `c` to create the clip.
+
+It is possible to create silent videoclips.
+To do that, first mute audio in mpv.
+The default key binding is `m`.
+
+If a video has visible subtitles, they will be embedded automatically.
+Toggle them off in mpv if you don't want any subtitles to be visible.
+The default key binding is `v`.
