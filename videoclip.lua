@@ -176,6 +176,13 @@ local function validate_config()
     set_encoding_settings()
 end
 
+local function notify(message, level, duration)
+    level = level or 'info'
+    duration = duration or 1
+    mp.msg[level](message)
+    mp.osd_message(message, duration)
+end
+
 ------------------------------------------------------------
 -- Provides interface for creating audio/video clips
 
@@ -275,12 +282,12 @@ encoder.create_clip = function(clip_type)
     end
 
     if not main_menu.timings:validate() then
-        mp.osd_message("Wrong timings. Aborting.", 2)
+        notify("Wrong timings. Aborting.", "warn", 2)
         return
     end
 
     local clip_filename = construct_filename()
-    mp.osd_message("Please wait...", 9999)
+    notify("Please wait...", "info", 9999)
 
     local args
     local location
@@ -295,9 +302,9 @@ encoder.create_clip = function(clip_type)
 
     local process_result = function(_, ret, _)
         if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
-            mp.osd_message(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), 5)
+            notify(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), "error", 5)
         else
-            mp.osd_message(string.format("Clip saved to %s.", location), 2)
+            notify(string.format("Clip saved to %s.", location), "info", 2)
         end
     end
 
@@ -381,7 +388,7 @@ function main_menu:set_time_sub(property)
     local time_pos = mp.get_property_number(string.format("sub-%s", property))
 
     if time_pos == nil then
-        mp.osd_message("Warning: No subtitles visible.", 2)
+        notify("Warning: No subtitles visible.", "warn", 2)
         return
     end
 
