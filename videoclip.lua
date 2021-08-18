@@ -228,6 +228,7 @@ encoder.mkargs_video = function(clip_filename)
         '--oacopts-add=vbr=on',
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
+        '--vf-add=format=yuv420p',
         table.concat { '--ovc=', config.video_codec },
         table.concat { '--oac=', config.audio_codec },
         table.concat { '--start=', main_menu.timings['start'] },
