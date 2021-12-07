@@ -446,6 +446,7 @@ pref_menu.keybindings = {
 
 pref_menu.resolutions = {
     { w = config.video_width, h = config.video_height, },
+    { w = -2, h = -2, },
     { w = -2, h = 240, },
     { w = -2, h = 360, },
     { w = -2, h = 480, },
