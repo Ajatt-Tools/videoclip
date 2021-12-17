@@ -102,6 +102,9 @@ video_quality=23
 # Use the slowest preset that you have patience for.
 # https://trac.ffmpeg.org/wiki/Encode/H.264
 preset=faster
+# FPS / framerate. Set to "auto" or a number.
+video_fps=auto
+video_fps=60
 
 # Audio settings
 # Available formats: opus or aac

@@ -40,6 +40,7 @@ local config = {
     video_bitrate = '1M',
     video_width = -2,
     video_height = 480,
+    video_fps = 'auto',
     audio_format = 'opus', -- aac, opus
     audio_bitrate = '32k', -- 32k, 64k, 128k, 256k. aac requires higher bitrates.
     font_size = 24,
@@ -244,6 +245,10 @@ encoder.mkargs_video = function(clip_filename)
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
         table.concat { '-o=', clip_path }
     }
+
+    if config.video_fps ~= 'auto' then
+        table.insert(args, #args, table.concat { '--vf-add=fps=', config.video_fps })
+    end
 
     if mp.get_property_bool("sub-visibility") == true then
         args = encoder.append_embed_subs_args(args)
