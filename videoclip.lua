@@ -44,6 +44,7 @@ local config = {
     audio_format = 'opus', -- aac, opus
     audio_bitrate = '32k', -- 32k, 64k, 128k, 256k. aac requires higher bitrates.
     font_size = 24,
+    clean_filename = true,
 }
 
 mpopt.read_options(config, 'videoclip')
@@ -104,8 +105,11 @@ local function construct_filename()
     local filename = mp.get_property("filename") -- filename without path
 
     filename = remove_extension(filename)
-    filename = remove_text_in_brackets(filename)
-    filename = remove_special_characters(filename)
+
+    if config.clean_filename then
+        filename = remove_text_in_brackets(filename)
+        filename = remove_special_characters(filename)
+    end
 
     filename = string.format(
             '%s (%s-%s)',

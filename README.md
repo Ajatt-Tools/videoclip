@@ -88,6 +88,8 @@ audio_folder_path=/home/user/Music
 
 # Menu size
 font_size=24
+# Clean filenames (remove special characters) (yes or no)
+clean_filename=yes
 
 # Video settings
 video_width=-2
