@@ -76,7 +76,7 @@ local function remove_text_in_brackets(str)
 end
 
 local function remove_special_characters(str)
-    return str:gsub('[%c%p%s]', '')
+    return str:gsub('[%-_]', ' '):gsub('[%c%p]', ''):gsub('%s+', ' ')
 end
 
 local function human_readable_time(seconds)
@@ -108,7 +108,7 @@ local function construct_filename()
     filename = remove_special_characters(filename)
 
     filename = string.format(
-            '%s_(%s-%s)',
+            '%s (%s-%s)',
             filename,
             human_readable_time(main_menu.timings['start']),
             human_readable_time(main_menu.timings['end'])
@@ -495,7 +495,6 @@ function pref_menu:cycle_audio_bitrates()
     config.audio_bitrate = self.audio_bitrates[self.audio_bitrates.selected]
     self:update()
 end
-
 
 function pref_menu:cycle_formats(config_type)
     local formats
