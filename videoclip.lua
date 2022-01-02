@@ -44,7 +44,7 @@ local config = {
     audio_format = 'opus', -- aac, opus
     audio_bitrate = '32k', -- 32k, 64k, 128k, 256k. aac requires higher bitrates.
     font_size = 24,
-    clean_filename = true,
+    clean_filename = 'yes',
 }
 
 mpopt.read_options(config, 'videoclip')
