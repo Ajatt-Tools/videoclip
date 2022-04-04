@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+local NAME = 'videoclip'
 local mp = require('mp')
 local mpopt = require('mp.options')
 local utils = require('mp.utils')
@@ -47,7 +48,7 @@ local config = {
     clean_filename = true,
 }
 
-mpopt.read_options(config, 'videoclip')
+mpopt.read_options(config, NAME)
 local main_menu
 local pref_menu
 local encoder
@@ -559,10 +560,10 @@ function pref_menu:save()
         audio_codec = true,
     }
     local mpv_dirpath = string.gsub(mp.get_script_directory(), "scripts/%w+", "")
-    local config_filepath = utils.join_path(mpv_dirpath, 'script-opts/videoclip.conf')
+    local config_filepath = utils.join_path(mpv_dirpath, string.format('script-opts/%s.conf', NAME))
     local handle = io.open(config_filepath, 'w')
     if handle ~= nil then
-        handle:write(string.format("# Written by videoclip on %s.\n", os.date()))
+        handle:write(string.format("# Written by %s on %s.\n", NAME, os.date()))
         for key, value in pairs(config) do
             if ignore_list[key] == nil then
                 handle:write(string.format('%s=%s\n', key, value))
