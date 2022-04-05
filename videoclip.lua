@@ -452,6 +452,7 @@ pref_menu.keybindings = {
     { key = 's', fn = function() pref_menu:save() end },
     { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
+    { key = 'q', fn = function() pref_menu:close() end },
 }
 
 pref_menu.resolutions = {
