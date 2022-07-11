@@ -554,6 +554,13 @@ function pref_menu:update()
 end
 
 function pref_menu:save()
+    local function lua_to_mpv(config_value)
+        if type(config_value) == 'boolean' then
+            return config_value and 'yes' or 'no'
+        else
+            return config_value
+        end
+    end
     local ignore_list = {
         video_extension = true,
         audio_extension = true,
@@ -567,7 +574,7 @@ function pref_menu:save()
         handle:write(string.format("# Written by %s on %s.\n", NAME, os.date()))
         for key, value in pairs(config) do
             if ignore_list[key] == nil then
-                handle:write(string.format('%s=%s\n', key, value))
+                handle:write(string.format('%s=%s\n', key, lua_to_mpv(value)))
             end
         end
         handle:close()
