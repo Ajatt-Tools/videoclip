@@ -113,7 +113,7 @@ local function construct_filename()
     end
 
     filename = string.format(
-            '%s (%s-%s)',
+            '%s_%s-%s',
             filename,
             human_readable_time(main_menu.timings['start']),
             human_readable_time(main_menu.timings['end'])
