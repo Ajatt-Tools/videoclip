@@ -23,12 +23,14 @@ local mpopt = require('mp.options')
 local utils = require('mp.utils')
 local OSD = require('osd_styler')
 
+local is_macos = io.popen("uname"):read("*a") == "Darwin\n"
+
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
 local config = {
     -- absolute paths
     -- relative paths (e.g. ~ for home dir) do NOT work.
-    video_folder_path = string.format('%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
+    video_folder_path = string.format(is_macos and '%s/Movies/' or '%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
     audio_folder_path = string.format('%s/Music/', os.getenv("HOME") or os.getenv('USERPROFILE')),
     -- The range of the CRF scale is 0–51, where 0 is lossless,
     -- 23 is the default, and 51 is worst quality possible.
@@ -377,7 +379,7 @@ main_menu.keybindings = {
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() encoder.create_clip('audio') end },
     { key = 'p', fn = function() pref_menu:open() end },
-    { key = 'o', fn = function() mp.commandv('run', 'xdg-open', 'https://streamable.com/') end },
+    { key = 'o', fn = function() mp.commandv('run', is_macos and "open" or "xdg-open", 'https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
 }
 
