@@ -384,7 +384,7 @@ main_menu.keybindings = {
 }
 
 function main_menu:set_time(property)
-    self.timings[property] = mp.get_property_number('time-pos')
+    self.timings[property] = math.max(0, mp.get_property_number('time-pos'))
     self:update()
 end
 
@@ -397,7 +397,7 @@ function main_menu:set_time_sub(property)
         return
     end
 
-    self.timings[property] = time_pos + sub_delay
+    self.timings[property] = math.max(0, time_pos + sub_delay)
     self:update()
 end
 
