@@ -514,8 +514,8 @@ pref_menu.keybindings = {
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
     { key = 'b', fn = function() pref_menu:cycle_audio_bitrates() end },
     { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
-    { key = 'z', fn = function() pref_menu:toggle_catbox() end },
-    { key = 'x', fn = function() pref_menu:cycle_litterbox_expiration() end },
+    { key = 'x', fn = function() pref_menu:toggle_catbox() end },
+    { key = 'z', fn = function() pref_menu:cycle_litterbox_expiration() end },
     { key = 's', fn = function() pref_menu:save() end },
     { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
@@ -640,9 +640,9 @@ function pref_menu:update()
     osd:tab():item('m: Mute audio: '):append(mp.get_property("mute")):newline()
     osd:tab():item('e: Embed subtitles: '):append(mp.get_property("sub-visibility")):newline()
     osd:submenu('Catbox'):newline()
-    osd:tab():item('z: Using: '):append(config.litterbox and 'Litterbox (temporary)' or 'Catbox (permanent)'):newline()
+    osd:tab():item('x: Using: '):append(config.litterbox and 'Litterbox (temporary)' or 'Catbox (permanent)'):newline()
     if config.litterbox then
-        osd:tab():item('x: Litterbox expires after: '):append(config.litterbox_expire):newline()
+        osd:tab():item('z: Litterbox expires after: '):append(config.litterbox_expire):newline()
     else
         osd:tab():color("b0b0b0"):text('x: Litterbox expires after: '):append("N/A"):newline()
     end
