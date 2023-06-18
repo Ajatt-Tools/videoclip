@@ -23,14 +23,21 @@ local mpopt = require('mp.options')
 local utils = require('mp.utils')
 local OSD = require('osd_styler')
 
-local is_macos = io.popen("uname"):read("*a") == "Darwin\n"
+local os_type
+if string.find(io.popen("uname"):read("*a"), "MSYS_NT") then
+    os_type = 'windows'
+elseif string.find(io.popen("uname"):read("*a"), "Darwin") then
+    os_type = 'macos'
+else
+    os_type = 'linux'
+end
 
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
 local config = {
     -- absolute paths
     -- relative paths (e.g. ~ for home dir) do NOT work.
-    video_folder_path = string.format(is_macos and '%s/Movies/' or '%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
+    video_folder_path = string.format(os_type == 'macos' and '%s/Movies/' or '%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
     audio_folder_path = string.format('%s/Music/', os.getenv("HOME") or os.getenv('USERPROFILE')),
     -- The range of the CRF scale is 0–51, where 0 is lossless,
     -- 23 is the default, and 51 is worst quality possible.
@@ -48,6 +55,10 @@ local config = {
     audio_bitrate = '32k', -- 32k, 64k, 128k, 256k. aac requires higher bitrates.
     font_size = 24,
     clean_filename = true,
+    -- Whether to upload to catbox (permanent) or litterbox (temporary)
+    litterbox = false,
+    -- Determines expire time of files uploaded to litterbox
+    litterbox_expire = '72h', -- 1h, 12h, 24h, 72h
 }
 
 mpopt.read_options(config, NAME)
@@ -280,7 +291,7 @@ encoder.mkargs_audio = function(clip_filename)
     }
 end
 
-encoder.create_clip = function(clip_type)
+encoder.create_clip = function(clip_type, on_complete)
     main_menu:close();
     if clip_type == nil then
         return
@@ -310,10 +321,13 @@ encoder.create_clip = function(clip_type)
             notify(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), "error", 5)
         else
             notify(string.format("Clip saved to %s.", location), "info", 2)
+            if on_complete then
+                on_complete(utils.join_path(config.video_folder_path, clip_filename .. config.video_extension))
+            end
         end
     end
 
-    subprocess_async(args, process_result)
+    local result = subprocess_async(args, process_result)
     main_menu.timings:reset()
 end
 
@@ -378,8 +392,10 @@ main_menu.keybindings = {
     { key = 'c', fn = function() encoder.create_clip('video') end },
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() encoder.create_clip('audio') end },
+    { key = 'x', fn = function() main_menu:upload_litterbox() end },
+    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.upload_litterbox) end },
     { key = 'p', fn = function() pref_menu:open() end },
-    { key = 'o', fn = function() mp.commandv('run', is_macos and "open" or "xdg-open", 'https://streamable.com/') end },
+    { key = 'o', fn = function() mp.commandv('run', os_type == 'macos' and "open" or "xdg-open", 'https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
 }
 
@@ -423,12 +439,67 @@ function main_menu:update()
     osd:submenu('Create clip '):italics('(+shift to force fullHD preset)'):newline()
     osd:tab():item('c: '):append('video clip'):newline()
     osd:tab():item('a: '):append('audio clip'):newline()
+    osd:tab():item('x: '):append('video clip to ' .. (config.litterbox and 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')' or 'catbox.moe')):newline()
     osd:submenu('Options '):newline()
     osd:tab():item('p: '):append('Open preferences'):newline()
     osd:tab():item('o: '):append('Open streamable.com'):newline()
     osd:tab():item('ESC: '):append('Close'):newline()
 
     self:overlay_draw(osd:get_text())
+end
+
+function main_menu:upload_litterbox()
+    local endpoint = config.litterbox and 'https://litterbox.catbox.moe/resources/internals/api.php' or 'https://catbox.moe/user/api.php'
+
+    encoder.create_clip('video', 
+        function(outfile)
+            notify("Uploading to litterbox.catbox.moe...", "info", 9999)
+
+            if os_type == 'windows' then
+                -- This uses cURL to send a request to the cat-/litterbox API.
+                    -- (cURL is included with Windows 10 and up)
+
+                local r = mp.command_native({ -- This is technically blocking, but I don't think it has any real consequences ..?
+                    name = 'subprocess',
+                    playback_only = false,
+                    capture_stdout = true,
+                    capture_stderr = true,
+                    args = {
+                        'curl.exe', '-s',
+                        '-F', 'reqtype=fileupload',
+                        '-F', 'time=' .. config['litterbox_expire'],
+                        '-F', 'fileToUpload=@"' .. outfile .. '"',
+                        endpoint
+                    }
+                })
+                -- This really only happens for people that should have upgraded their system years ago.
+                -- Or people running a minimal installation i guess.
+                if r.status == -3 then
+                    notify("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
+                    return
+                end
+                if r.status ~= 0 then
+                    notify("Error: Failed to upload to " .. config.litterbox and "litterbox.catbox.moe" or "catbox.moe", "error", 2)
+                    return
+                end
+
+                -- Copy to clipboard
+                print(r.stdout)
+                local clipboard_command = 'powershell -command "Set-Clipboard -Value ' .. r.stdout .. '"'
+                mp.command('run ' .. clipboard_command)
+            end
+
+            if os_type == 'macos' then
+                notify("Not yet implemented for macOS.", "error", 2)
+            end
+            if os_type == 'linux' then
+                notify("Not yet implemented for Linux.", "error", 2)
+            end
+
+            notify("Done! Copied URL to clipboard.", "info", 2)
+        end
+    )
+
 end
 
 ------------------------------------------------------------
@@ -443,6 +514,8 @@ pref_menu.keybindings = {
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
     { key = 'b', fn = function() pref_menu:cycle_audio_bitrates() end },
     { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
+    { key = 'z', fn = function() pref_menu:toggle_catbox() end },
+    { key = 'x', fn = function() pref_menu:cycle_litterbox_expiration() end },
     { key = 's', fn = function() pref_menu:save() end },
     { key = 'c', fn = function() end },
     { key = 'ESC', fn = function() pref_menu:close() end },
@@ -473,6 +546,7 @@ pref_menu.audio_bitrates = {
 
 pref_menu.vid_formats = { 'mp4', 'vp9', 'vp8', }
 pref_menu.aud_formats = { 'aac', 'opus', }
+pref_menu.litterbox_expirations = { '1h', '12h', '24h', '72h', }
 
 function pref_menu:get_selected_resolution()
     local w = config.video_width
@@ -534,6 +608,28 @@ function pref_menu:toggle_embed_subtitles()
     self:update()
 end
 
+function pref_menu:toggle_catbox()
+    config['litterbox'] = not config['litterbox']
+    self:update()
+end
+
+function pref_menu:cycle_litterbox_expiration()
+    if not config['litterbox'] then
+        return
+    end
+    local expirations = pref_menu.litterbox_expirations
+
+    local selected = 1
+    for i, expiration in ipairs(expirations) do
+        if config['litterbox_expire'] == expiration then
+            selected = i
+            break
+        end
+    end
+    config['litterbox_expire'] = expirations[selected + 1] or expirations[1]
+    self:update()
+end
+
 function pref_menu:update()
     local osd = OSD:new():size(config.font_size):align(4)
     osd:submenu('Preferences'):newline()
@@ -543,6 +639,14 @@ function pref_menu:update()
     osd:tab():item('b: Audio bitrate: '):append(config.audio_bitrate):newline()
     osd:tab():item('m: Mute audio: '):append(mp.get_property("mute")):newline()
     osd:tab():item('e: Embed subtitles: '):append(mp.get_property("sub-visibility")):newline()
+    osd:submenu('Catbox'):newline()
+    osd:tab():item('z: Using: '):append(config.litterbox and 'Litterbox (temporary)' or 'Catbox (permanent)'):newline()
+    if config.litterbox then
+        osd:tab():item('x: Litterbox expires after: '):append(config.litterbox_expire):newline()
+    else
+        osd:tab():color("b0b0b0"):text('x: Litterbox expires after: '):append("N/A"):newline()
+    end
+    osd:submenu('Save'):newline()
     osd:tab():item('s: Save preferences'):newline()
     self:overlay_draw(osd:get_text())
 end
