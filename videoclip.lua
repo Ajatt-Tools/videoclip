@@ -453,7 +453,7 @@ function main_menu:upload_litterbox()
 
     encoder.create_clip('video', 
         function(outfile)
-            notify("Uploading to litterbox.catbox.moe...", "info", 9999)
+            notify("Uploading to " .. (config.litterbox and "litterbox.catbox.moe..." or "catbox.moe..."), "info", 9999)
 
             if os_type == 'windows' then
                 -- This uses cURL to send a request to the cat-/litterbox API.
