@@ -31,6 +31,10 @@ elseif string.find(io.popen("uname"):read("*a"), "Darwin") then
 else
     os_type = 'linux'
 end
+local open_utility =
+    os_type == 'windows' and 'explorer.exe' or
+    os_type == 'macos' and 'open' or
+    os_type == 'linux' and 'xdg-open'
 
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
@@ -135,6 +139,17 @@ local function construct_filename()
     return filename
 end
 
+local function subprocess(args, stdin)
+    local command_table = {
+        name = "subprocess",
+        playback_only = false,
+        capture_stdout = true,
+        capture_stderr = true,
+        args = args,
+        stdin_data = stdin or "",
+    }
+    return mp.command_native(command_table)
+end
 local function subprocess_async(args, on_complete)
     local command_table = {
         name = "subprocess",
@@ -395,7 +410,7 @@ main_menu.keybindings = {
     { key = 'x', fn = function() main_menu:upload_catbox() end },
     { key = 'X', fn = function() force_resolution(1920, -2, main_menu.upload_catbox) end },
     { key = 'p', fn = function() pref_menu:open() end },
-    { key = 'o', fn = function() mp.commandv('run', os_type == 'macos' and "open" or "xdg-open", 'https://streamable.com/') end },
+    { key = 'o', fn = function() mp.commandv('run', open_utility, 'https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
 }
 
@@ -485,24 +500,53 @@ function main_menu:upload_catbox()
 
             -- Copy to clipboard
             if os_type == 'windows' then
-                local clipboard_command = 'powershell -command "Set-Clipboard -Value ' .. r.stdout .. '"'
-                mp.command('run ' .. clipboard_command)
+                local clipboard_command = {
+                    'powershell.exe', '-command',
+                    'Set-Clipboard -Value ' .. r.stdout
+                }
+                
+                local cb = subprocess(clipboard_command)
+                -- local status = mp.command('run ' .. clipboard_command)
+                if cb.status ~= 0 then
+                    notify("Failed to copy URL to clipboard, trying to open in browser instead. (Make sure PowerShell is installed)", "warn", 4)
+                    mp.commandv('run', open_utility, r.stdout)
+                    return
+                end
             end
 
             if os_type == 'macos' then
-                local clipboard_command = 'echo ' .. r.stdout .. ' | pbcopy'
-                mp.command("run /bin/sh -c \"" .. clipboard_command .. "\"")
+                local clipboard_command = {
+                    "pbcopy"
+                }
+                local cb = subprocess(clipboard_command, r.stdout)
+                if cb.status ~= 0 then
+                    notify("Failed to copy URL to clipboard, trying to open in browser instead. (Make sure pbcopy is installed)", "warn", 4)
+                    mp.commandv('run', open_utility, r.stdout)
+                    return
+                end
             end
 
             if os_type == "linux" then
                 local session_type = io.popen('/bin/sh -c "echo $XDG_SESSION_TYPE"'):read("*a")
 
-                -- wl-copy is from wl-clipboard
-                local clipboard_command = session_type == "x11\n" and
-                    "/bin/sh -c \"echo " .. r.stdout .. "| xclip -sel clip\"" or
-                    "wl-copy " .. r.stdout
-
-                mp.command('run ' .. clipboard_command)
+                local cb
+                if session_type == "x11\n" then
+                    local clipboard_command = {
+                        "xclip", "-sel", "clip"
+                    }
+                    cb = subprocess(clipboard_command, r.stdout)
+                else
+                    -- wl-copy is from wl-clipboard
+                    local clipboard_command = {
+                        "wl-copy", r.stdout
+                    }
+                    cb = subprocess(clipboard_command)
+                end
+                if cb.status ~= 0 then
+                    notify("Failed to copy URL to clipboard, trying to open in browser instead. (Make sure xclip or wl-clipboard is installed)", "warn", 4)
+                    mp.commandv('run', open_utility, r.stdout)
+                    return
+                end
             end
 
             notify("Done! Copied URL to clipboard.", "info", 2)
