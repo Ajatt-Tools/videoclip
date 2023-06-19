@@ -392,8 +392,8 @@ main_menu.keybindings = {
     { key = 'c', fn = function() encoder.create_clip('video') end },
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() encoder.create_clip('audio') end },
-    { key = 'x', fn = function() main_menu:upload_litterbox() end },
-    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.upload_litterbox) end },
+    { key = 'x', fn = function() main_menu:upload_catbox() end },
+    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.upload_catbox) end },
     { key = 'p', fn = function() pref_menu:open() end },
     { key = 'o', fn = function() mp.commandv('run', os_type == 'macos' and "open" or "xdg-open", 'https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
@@ -448,7 +448,7 @@ function main_menu:update()
     self:overlay_draw(osd:get_text())
 end
 
-function main_menu:upload_litterbox()
+function main_menu:upload_catbox()
     local endpoint = config.litterbox and 'https://litterbox.catbox.moe/resources/internals/api.php' or 'https://catbox.moe/user/api.php'
 
     encoder.create_clip('video',
