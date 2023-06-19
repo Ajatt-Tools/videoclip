@@ -456,7 +456,7 @@ function main_menu:upload_litterbox()
             notify("Uploading to " .. (config.litterbox and "litterbox.catbox.moe..." or "catbox.moe..."), "info", 9999)
 
             -- This uses cURL to send a request to the cat-/litterbox API.
-            -- (cURL is included with Windows 10 and up)
+            -- cURL is included on Windows 10 and up, most Linux distributions and macOS.
 
             local r = mp.command_native({ -- This is technically blocking, but I don't think it has any real consequences ..?
                 name = 'subprocess',
@@ -472,9 +472,9 @@ function main_menu:upload_litterbox()
                 }
             })
 
-            -- This really only happens for people that should have upgraded their system years ago.
-            -- Or people running a minimal installation i guess.
-            if r.status == -3 then
+            -- Exit codes in the range [0, 99] are returned by cURL itself.
+            -- Any other exit code means the shell failed to execute cURL.
+            if r.status < 0 or r.status > 99 then
                 notify("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
                 return
             end
