@@ -451,49 +451,58 @@ end
 function main_menu:upload_litterbox()
     local endpoint = config.litterbox and 'https://litterbox.catbox.moe/resources/internals/api.php' or 'https://catbox.moe/user/api.php'
 
-    encoder.create_clip('video', 
+    encoder.create_clip('video',
         function(outfile)
             notify("Uploading to " .. (config.litterbox and "litterbox.catbox.moe..." or "catbox.moe..."), "info", 9999)
 
+            -- This uses cURL to send a request to the cat-/litterbox API.
+            -- (cURL is included with Windows 10 and up)
+
+            local r = mp.command_native({ -- This is technically blocking, but I don't think it has any real consequences ..?
+                name = 'subprocess',
+                playback_only = false,
+                capture_stdout = true,
+                capture_stderr = true,
+                args = {
+                    os_type == 'window' and 'curl.exe' or 'curl', '-s',
+                    '-F', 'reqtype=fileupload',
+                    '-F', 'time=' .. config['litterbox_expire'],
+                    '-F', 'fileToUpload=@"' .. outfile .. '"',
+                    endpoint
+                }
+            })
+
+            -- This really only happens for people that should have upgraded their system years ago.
+            -- Or people running a minimal installation i guess.
+            if r.status == -3 then
+                notify("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
+                return
+            end
+            if r.status ~= 0 then
+                notify("Error: Failed to upload to " .. config.litterbox and "litterbox.catbox.moe" or "catbox.moe", "error", 2)
+                return
+            end
+
+            -- Copy to clipboard
             if os_type == 'windows' then
-                -- This uses cURL to send a request to the cat-/litterbox API.
-                    -- (cURL is included with Windows 10 and up)
-
-                local r = mp.command_native({ -- This is technically blocking, but I don't think it has any real consequences ..?
-                    name = 'subprocess',
-                    playback_only = false,
-                    capture_stdout = true,
-                    capture_stderr = true,
-                    args = {
-                        'curl.exe', '-s',
-                        '-F', 'reqtype=fileupload',
-                        '-F', 'time=' .. config['litterbox_expire'],
-                        '-F', 'fileToUpload=@"' .. outfile .. '"',
-                        endpoint
-                    }
-                })
-                -- This really only happens for people that should have upgraded their system years ago.
-                -- Or people running a minimal installation i guess.
-                if r.status == -3 then
-                    notify("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
-                    return
-                end
-                if r.status ~= 0 then
-                    notify("Error: Failed to upload to " .. config.litterbox and "litterbox.catbox.moe" or "catbox.moe", "error", 2)
-                    return
-                end
-
-                -- Copy to clipboard
-                print(r.stdout)
                 local clipboard_command = 'powershell -command "Set-Clipboard -Value ' .. r.stdout .. '"'
                 mp.command('run ' .. clipboard_command)
             end
 
             if os_type == 'macos' then
-                notify("Not yet implemented for macOS.", "error", 2)
+                local clipboard_command = 'echo ' .. r.stdout .. ' | pbcopy'
+                mp.command("run /bin/sh -c \"" .. clipboard_command .. "\"")
             end
-            if os_type == 'linux' then
-                notify("Not yet implemented for Linux.", "error", 2)
+
+            if os_type == "linux" then
+                local session_type = io.popen('/bin/sh -c "echo $XDG_SESSION_TYPE"'):read("*a")
+
+                -- wl-copy is from wl-clipboard
+                local clipboard_command = session_type == "x11\n" and
+                    "/bin/sh -c \"echo " .. r.stdout .. "| xclip -sel clip\"" or
+                    "wl-copy " .. r.stdout
+
+                mp.command('run ' .. clipboard_command)
             end
 
             notify("Done! Copied URL to clipboard.", "info", 2)
