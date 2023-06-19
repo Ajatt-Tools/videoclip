@@ -538,9 +538,9 @@ function main_menu:upload_catbox()
                 local cb
                 if session_type == "x11\n" then
                     local clipboard_command = {
-                        "xclip", "-sel", "clip"
+                        "/bin/sh", "-c", "'echo " .. r.stdout .. " | xclip -sel clip'"
                     }
-                    cb = subprocess(clipboard_command, r.stdout)
+                    cb = subprocess(clipboard_command)
                 else
                     -- wl-copy is from wl-clipboard
                     local clipboard_command = {
