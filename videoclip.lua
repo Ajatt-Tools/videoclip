@@ -23,19 +23,6 @@ local mpopt = require('mp.options')
 local utils = require('mp.utils')
 local OSD = require('osd_styler')
 
-local os_type
-if string.find(io.popen("uname"):read("*a"), "MSYS_NT") then
-    os_type = 'windows'
-elseif string.find(io.popen("uname"):read("*a"), "Darwin") then
-    os_type = 'macos'
-else
-    os_type = 'linux'
-end
-local open_utility =
-    os_type == 'windows' and 'explorer.exe' or
-    os_type == 'macos' and 'open' or
-    os_type == 'linux' and 'xdg-open'
-
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
 local config = {
@@ -216,6 +203,24 @@ local function notify(message, level, duration)
     mp.msg[level](message)
     mp.osd_message(message, duration)
 end
+
+------------------------------------------------------------
+-- System-dependent variables
+
+local os_type
+local uname = subprocess({"uname"}).stdout
+if string.find(uname, "MSYS_NT") then
+    os_type = 'windows'
+elseif string.find(uname, "Darwin") then
+    os_type = 'macos'
+else
+    os_type = 'linux'
+end
+
+local open_utility =
+    os_type == 'windows' and 'explorer.exe' or
+    os_type == 'macos' and 'open' or
+    os_type == 'linux' and 'xdg-open'
 
 ------------------------------------------------------------
 -- Provides interface for creating audio/video clips
