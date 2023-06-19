@@ -479,7 +479,7 @@ function main_menu:upload_catbox()
                 capture_stdout = true,
                 capture_stderr = true,
                 args = {
-                    os_type == 'window' and 'curl.exe' or 'curl', '-s',
+                    os_type == 'windows' and 'curl.exe' or 'curl', '-s',
                     '-F', 'reqtype=fileupload',
                     '-F', 'time=' .. config['litterbox_expire'],
                     '-F', 'fileToUpload=@"' .. outfile .. '"',
