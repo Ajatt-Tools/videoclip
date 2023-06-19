@@ -478,18 +478,12 @@ function main_menu:upload_catbox()
             -- This uses cURL to send a request to the cat-/litterbox API.
             -- cURL is included on Windows 10 and up, most Linux distributions and macOS.
 
-            local r = mp.command_native({ -- This is technically blocking, but I don't think it has any real consequences ..?
-                name = 'subprocess',
-                playback_only = false,
-                capture_stdout = true,
-                capture_stderr = true,
-                args = {
-                    os_type == 'windows' and 'curl.exe' or 'curl', '-s',
-                    '-F', 'reqtype=fileupload',
-                    '-F', 'time=' .. config['litterbox_expire'],
-                    '-F', 'fileToUpload=@"' .. outfile .. '"',
-                    endpoint
-                }
+            local r = subprocess({ -- This is technically blocking, but I don't think it has any real consequences ..?
+                os_type == 'windows' and 'curl.exe' or 'curl', '-s',
+                '-F', 'reqtype=fileupload',
+                '-F', 'time=' .. config['litterbox_expire'],
+                '-F', 'fileToUpload=@"' .. outfile .. '"',
+                endpoint
             })
 
             -- Exit codes in the range [0, 99] are returned by cURL itself.
