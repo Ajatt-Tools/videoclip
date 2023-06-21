@@ -72,7 +72,7 @@ local config = {
     font_size = 24,
     clean_filename = true,
     -- Whether to upload to catbox (permanent) or litterbox (temporary)
-    litterbox = false,
+    litterbox = true,
     -- Determines expire time of files uploaded to litterbox
     litterbox_expire = '72h', -- 1h, 12h, 24h, 72h
 }

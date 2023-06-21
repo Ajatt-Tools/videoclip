@@ -117,7 +117,7 @@ audio_bitrate=32k
 # Catbox.moe upload settings
 # Whether uploads should go to litterbox instead of catbox.
 # catbox files are stored permanently, while litterbox is temporary
-litterbox=no
+litterbox=yes
 # If using litterbox, time until video expires
 # Available values: 1h, 12h, 24h, 72h
 litterbox_expire=72h
