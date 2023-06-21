@@ -533,25 +533,23 @@ function main_menu:upload_catbox()
             end
 
             if os_type == "linux" then
-                local session_type = io.popen('/bin/sh -c "echo $XDG_SESSION_TYPE"'):read("*a")
+                local cb_x11 = string.find(subprocess({
+                    "whereis", "xclip"
+                }).stdout, "/")
+                local cb_wayland = string.find(subprocess({
+                    "whereis", "wl-copy"
+                }).stdout, "/")
 
-                local cb
-                if session_type == "x11\n" then
-                    local clipboard_command = {
-                        "xclip", "-sel", "clip"
-                    }
-                    cb = subprocess(clipboard_command, r.stdout)
-                else
-                    -- wl-copy is from wl-clipboard
-                    local clipboard_command = {
-                        "wl-copy", r.stdout
-                    }
-                    cb = subprocess(clipboard_command)
-                end
-                if cb.status ~= 0 then
-                    notify("Failed to copy URL to clipboard, trying to open in browser instead. (Make sure xclip or wl-clipboard is installed)", "warn", 4)
+                if cb_x11 == nil and cb_wayland == nil then
+                    notify("Failed to copy URL to clipboard, trying to open in browser instead.\n(Make sure xclip or wl-clipboard is installed)", "warn", 6)
                     mp.commandv('run', open_utility, r.stdout)
                     return
+                end
+
+                if cb_x11 ~= nil then
+                    mp.command("run /bin/sh -c \"echo " .. r.stdout .. " | xclip -sel clip\"")
+                elseif cb_wayland ~= nil then
+                    mp.command("run wl-copy " .. r.stdout)
                 end
             end
 
