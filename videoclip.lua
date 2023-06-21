@@ -540,7 +540,7 @@ function main_menu:upload_catbox()
                     "whereis", "wl-copy"
                 }).stdout, "/")
 
-                if cb_x11 == nil and cb_wayland == nil then
+                if cb_x11 == nil or cb_wayland == nil then
                     notify("Failed to copy URL to clipboard, trying to open in browser instead.\n(Make sure xclip or wl-clipboard is installed)", "warn", 6)
                     mp.commandv('run', open_utility, r.stdout)
                     return
