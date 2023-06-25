@@ -22,39 +22,19 @@ local mp = require('mp')
 local mpopt = require('mp.options')
 local utils = require('mp.utils')
 local OSD = require('osd_styler')
+local p = require('platform')
+local h = require('helpers')
 
 ------------------------------------------------------------
 -- System-dependent variables
-
-local os_type
-local uname = mp.command_native({
-    name = "subprocess",
-    playback_only = false,
-    capture_stdout = true,
-    capture_stderr = true,
-    args = "uname",
-}).stdout
-
-if string.find(uname, "MSYS_NT") then
-    os_type = 'windows'
-elseif string.find(uname, "Darwin") then
-    os_type = 'macos'
-else
-    os_type = 'linux'
-end
-
-local open_utility =
-    os_type == 'windows' and 'explorer.exe' or
-    os_type == 'macos' and 'open' or
-    os_type == 'linux' and 'xdg-open'
 
 -- Options can be changed here or in a separate config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
 local config = {
     -- absolute paths
     -- relative paths (e.g. ~ for home dir) do NOT work.
-    video_folder_path = string.format(os_type == 'macos' and '%s/Movies/' or '%s/Videos/', os.getenv("HOME") or os.getenv('USERPROFILE')),
-    audio_folder_path = string.format('%s/Music/', os.getenv("HOME") or os.getenv('USERPROFILE')),
+    video_folder_path = p.default_video_folder,
+    audio_folder_path = p.default_audio_folder,
     -- The range of the CRF scale is 0–51, where 0 is lossless,
     -- 23 is the default, and 51 is worst quality possible.
     -- Insane values like 9999 still work but produce the worst quality.
@@ -151,28 +131,6 @@ local function construct_filename()
     return filename
 end
 
-local function subprocess(args, stdin)
-    local command_table = {
-        name = "subprocess",
-        playback_only = false,
-        capture_stdout = true,
-        capture_stderr = true,
-        args = args,
-        stdin_data = stdin or "",
-    }
-    return mp.command_native(command_table)
-end
-local function subprocess_async(args, on_complete)
-    local command_table = {
-        name = "subprocess",
-        playback_only = false,
-        capture_stdout = true,
-        capture_stderr = true,
-        args = args
-    }
-    return mp.command_native_async(command_table, on_complete)
-end
-
 local function force_resolution(width, height, clip_fn, ...)
     local cached_prefs = {
         video_width = config.video_width,
@@ -222,11 +180,34 @@ local function validate_config()
     set_encoding_settings()
 end
 
-local function notify(message, level, duration)
-    level = level or 'info'
-    duration = duration or 1
-    mp.msg[level](message)
-    mp.osd_message(message, duration)
+local function upload_to_catbox(outfile)
+    local endpoint = config.litterbox and 'https://litterbox.catbox.moe/resources/internals/api.php' or 'https://catbox.moe/user/api.php'
+    h.notify("Uploading to " .. (config.litterbox and "litterbox.catbox.moe..." or "catbox.moe..."), "info", 9999)
+
+    -- This uses cURL to send a request to the cat-/litterbox API.
+    -- cURL is included on Windows 10 and up, most Linux distributions and macOS.
+
+    local r = h.subprocess({ -- This is technically blocking, but I don't think it has any real consequences ..?
+        p.curl_exe, '-s',
+        '-F', 'reqtype=fileupload',
+        '-F', 'time=' .. config['litterbox_expire'],
+        '-F', 'fileToUpload=@"' .. outfile .. '"',
+        endpoint
+    })
+
+    -- Exit codes in the range [0, 99] are returned by cURL itself.
+    -- Any other exit code means the shell failed to execute cURL.
+    if r.status < 0 or r.status > 99 then
+        h.notify("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
+        return
+    elseif r.status ~= 0 then
+        h.notify("Error: Failed to upload to " .. (config.litterbox and "litterbox.catbox.moe" or "catbox.moe"), "error", 2)
+        return
+    end
+
+    mp.msg.info("Catbox URL: " .. r.stdout)
+    -- Copy to clipboard
+    p.copy_or_open_url(r.stdout)
 end
 
 ------------------------------------------------------------
@@ -325,12 +306,12 @@ encoder.create_clip = function(clip_type, on_complete)
     end
 
     if not main_menu.timings:validate() then
-        notify("Wrong timings. Aborting.", "warn", 2)
+        h.notify("Wrong timings. Aborting.", "warn", 2)
         return
     end
 
     local clip_filename = construct_filename()
-    notify("Please wait...", "info", 9999)
+    h.notify("Please wait...", "info", 9999)
 
     local args
     local location
@@ -345,16 +326,16 @@ encoder.create_clip = function(clip_type, on_complete)
 
     local process_result = function(_, ret, _)
         if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
-            notify(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), "error", 5)
+            h.notify(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), "error", 5)
         else
-            notify(string.format("Clip saved to %s.", location), "info", 2)
+            h.notify(string.format("Clip saved to %s.", location), "info", 2)
             if on_complete then
                 on_complete(utils.join_path(config.video_folder_path, clip_filename .. config.video_extension))
             end
         end
     end
 
-    local result = subprocess_async(args, process_result)
+    h.subprocess_async(args, process_result)
     main_menu.timings:reset()
 end
 
@@ -419,10 +400,10 @@ main_menu.keybindings = {
     { key = 'c', fn = function() encoder.create_clip('video') end },
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() encoder.create_clip('audio') end },
-    { key = 'x', fn = function() main_menu:upload_catbox() end },
-    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.upload_catbox) end },
+    { key = 'x', fn = function() main_menu:create_clip_and_upload_to_catbox() end },
+    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.create_clip_and_upload_to_catbox) end },
     { key = 'p', fn = function() pref_menu:open() end },
-    { key = 'o', fn = function() mp.commandv('run', open_utility, 'https://streamable.com/') end },
+    { key = 'o', fn = function() p.open('https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
 }
 
@@ -436,7 +417,7 @@ function main_menu:set_time_sub(property)
     local time_pos = mp.get_property_number(string.format("sub-%s", property))
 
     if time_pos == nil then
-        notify("Warning: No subtitles visible.", "warn", 2)
+        h.notify("Warning: No subtitles visible.", "warn", 2)
         return
     end
 
@@ -475,88 +456,8 @@ function main_menu:update()
     self:overlay_draw(osd:get_text())
 end
 
-function main_menu:upload_catbox()
-    local endpoint = config.litterbox and 'https://litterbox.catbox.moe/resources/internals/api.php' or 'https://catbox.moe/user/api.php'
-
-    encoder.create_clip('video',
-        function(outfile)
-            notify("Uploading to " .. (config.litterbox and "litterbox.catbox.moe..." or "catbox.moe..."), "info", 9999)
-
-            -- This uses cURL to send a request to the cat-/litterbox API.
-            -- cURL is included on Windows 10 and up, most Linux distributions and macOS.
-
-            local r = subprocess({ -- This is technically blocking, but I don't think it has any real consequences ..?
-                os_type == 'windows' and 'curl.exe' or 'curl', '-s',
-                '-F', 'reqtype=fileupload',
-                '-F', 'time=' .. config['litterbox_expire'],
-                '-F', 'fileToUpload=@"' .. outfile .. '"',
-                endpoint
-            })
-
-            -- Exit codes in the range [0, 99] are returned by cURL itself.
-            -- Any other exit code means the shell failed to execute cURL.
-            if r.status < 0 or r.status > 99 then
-                notify("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
-                return
-            end
-            if r.status ~= 0 then
-                notify("Error: Failed to upload to " .. config.litterbox and "litterbox.catbox.moe" or "catbox.moe", "error", 2)
-                return
-            end
-
-            -- Copy to clipboard
-            if os_type == 'windows' then
-                local clipboard_command = {
-                    'powershell.exe', '-command',
-                    'Set-Clipboard -Value ' .. r.stdout
-                }
-                
-                local cb = subprocess(clipboard_command)
-                -- local status = mp.command('run ' .. clipboard_command)
-                if cb.status ~= 0 then
-                    notify("Failed to copy URL to clipboard, trying to open in browser instead. (Make sure PowerShell is installed)", "warn", 4)
-                    mp.commandv('run', open_utility, r.stdout)
-                    return
-                end
-            end
-
-            if os_type == 'macos' then
-                local clipboard_command = {
-                    "pbcopy"
-                }
-                local cb = subprocess(clipboard_command, r.stdout)
-                if cb.status ~= 0 then
-                    notify("Failed to copy URL to clipboard, trying to open in browser instead. (Make sure pbcopy is installed)", "warn", 4)
-                    mp.commandv('run', open_utility, r.stdout)
-                    return
-                end
-            end
-
-            if os_type == "linux" then
-                local cb_x11 = string.find(subprocess({
-                    "whereis", "xclip"
-                }).stdout, "/")
-                local cb_wayland = string.find(subprocess({
-                    "whereis", "wl-copy"
-                }).stdout, "/")
-
-                if cb_x11 == nil and cb_wayland == nil then
-                    notify("Failed to copy URL to clipboard, trying to open in browser instead.\n(Make sure xclip or wl-clipboard is installed)", "warn", 6)
-                    mp.commandv('run', open_utility, r.stdout)
-                    return
-                end
-
-                if cb_x11 ~= nil then
-                    mp.command("run /bin/sh -c \"echo " .. r.stdout .. " | xclip -sel clip\"")
-                elseif cb_wayland ~= nil then
-                    mp.command("run wl-copy " .. r.stdout)
-                end
-            end
-
-            notify("Done! Copied URL to clipboard.", "info", 2)
-        end
-    )
-
+function main_menu:create_clip_and_upload_to_catbox()
+    encoder.create_clip('video', upload_to_catbox)
 end
 
 ------------------------------------------------------------
@@ -606,11 +507,11 @@ pref_menu.aud_formats = { 'aac', 'opus', }
 pref_menu.litterbox_expirations = { '1h', '12h', '24h', '72h', }
 
 function pref_menu:get_selected_resolution()
-    local w = config.video_width
-    local h = config.video_height
-    w = w == -2 and 'auto' or w
-    h = h == -2 and 'auto' or h
-    return string.format('%s x %s', w, h)
+    return string.format(
+            '%s x %s',
+            config.video_width == -2 and 'auto' or config.video_width,
+            config.video_height == -2 and 'auto' or config.video_height
+    )
 end
 
 function pref_menu:cycle_resolutions()
@@ -733,9 +634,9 @@ function pref_menu:save()
             end
         end
         handle:close()
-        notify("Settings saved.", "info", 2)
+        h.notify("Settings saved.", "info", 2)
     else
-        notify(string.format("Couldn't open %s.", config_filepath), "error", 4)
+        h.notify(string.format("Couldn't open %s.", config_filepath), "error", 4)
     end
 end
 
