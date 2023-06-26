@@ -56,8 +56,8 @@ this.clipboard = (function()
             local handle = io.popen(h.is_wayland() and "wl-copy" or "xclip -i -selection clipboard", 'w')
             if handle then
                 handle:write(text)
-                handle:close()
-                return { status = 0 }
+                local suc, exit, code = handle:close()
+                return { status = code }
             else
                 return { status = 1 }
             end
