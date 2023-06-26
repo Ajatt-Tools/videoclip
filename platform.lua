@@ -45,22 +45,19 @@ this.clipboard = (function()
         self.copy = function(text)
             return h.subprocess({ self.clip_exe, '-command', 'Set-Clipboard -Value ' .. text })
         end
-    elseif this.platform == this.Platform.macos then
-        self.clip_exe = "pbcopy"
-        self.copy = function(text)
-            local handle = io.popen("LANG=en_US.UTF-8 pbcopy", 'w')
-            if handle then
-                handle:write(text)
-                local suc, exit, code = handle:close()
-                return { status = code }
-            else
-                return { status = 1 }
-            end
-        end
     else
-        self.clip_exe = h.is_wayland() and "wl-copy" or "xclip"
+        if this.platform == this.Platform.macos then
+            self.clip_exe = "pbcopy"
+            self.clip_cmd = "LANG=en_US.UTF-8 pbcopy"
+        elseif h.is_wayland() then
+            self.clip_exe = "wl-copy"
+            self.clip_cmd = "wl-copy"
+        else
+            self.clip_exe = "xclip"
+            self.clip_cmd = "xclip -i -selection clipboard"
+        end
         self.copy = function(text)
-            local handle = io.popen(h.is_wayland() and "wl-copy" or "xclip -i -selection clipboard", 'w')
+            local handle = io.popen(self.clip_cmd, 'w')
             if handle then
                 handle:write(text)
                 local suc, exit, code = handle:close()
