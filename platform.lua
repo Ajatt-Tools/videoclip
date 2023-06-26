@@ -48,7 +48,14 @@ this.clipboard = (function()
     elseif this.platform == this.Platform.macos then
         self.clip_exe = "pbcopy"
         self.copy = function(text)
-            return h.subprocess({ self.clip_exe, }, text)
+            local handle = io.popen("LANG=en_US.UTF-8 pbcopy", 'w')
+            if handle then
+                handle:write(text)
+                local suc, exit, code = handle:close()
+                return { status = code }
+            else
+                return { status = 1 }
+            end
         end
     else
         self.clip_exe = h.is_wayland() and "wl-copy" or "xclip"
