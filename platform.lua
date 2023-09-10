@@ -60,8 +60,11 @@ this.clipboard = (function()
             local handle = io.popen(self.clip_cmd, 'w')
             if handle then
                 handle:write(text)
-                local suc, exit, code = handle:close()
-                return { status = code }
+                local success, status, signal = handle:close()
+                if success then
+                    status = 0
+                end
+                return { status = status }
             else
                 return { status = 1 }
             end
