@@ -55,6 +55,7 @@ local config = {
     litterbox = true,
     -- Determines expire time of files uploaded to litterbox
     litterbox_expire = '72h', -- 1h, 12h, 24h, 72h
+    sub_font = 'Noto Sans CJK JP',
 }
 
 mpopt.read_options(config, NAME)
@@ -251,7 +252,7 @@ encoder.mkargs_video = function(clip_filename)
         '--vf-add=format=yuv420p',
         '--sub-font-provider=auto',
         '--embeddedfonts=yes',
-        '--sub-font=Noto Sans CJK JP',
+        table.concat { '--sub-font=', config.sub_font },
         table.concat { '--ovc=', config.video_codec },
         table.concat { '--oac=', config.audio_codec },
         table.concat { '--start=', main_menu.timings['start'] },
