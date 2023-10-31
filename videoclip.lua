@@ -216,22 +216,23 @@ end
 
 encoder = {}
 
-function encoder.get_ext_subs_path()
+function encoder.get_ext_subs_paths()
     local track_list = mp.get_property_native('track-list')
+    local external_subs_list = {}
     for _, track in pairs(track_list) do
-        if track.type == 'sub' and track.selected == true and track.external == true then
-            return track['external-filename']
+        if track.type == 'sub' and track.external == true then
+            external_subs_list[track.id] = track['external-filename']
         end
     end
-    return nil
+    return external_subs_list
 end
 
 function encoder.append_embed_subs_args(args)
-    local ext_subs_path = encoder.get_ext_subs_path()
-    if ext_subs_path then
+    local ext_subs_paths = encoder.get_ext_subs_paths()
+    for _, ext_subs_path in pairs(ext_subs_paths) do
         table.insert(args, #args, table.concat { '--sub-files-append=', ext_subs_path, })
     end
-    table.insert(args, #args, table.concat { '--sid=', ext_subs_path and 'auto' or mp.get_property("sid") })
+    table.insert(args, #args, table.concat { '--sid=', mp.get_property("sid") })
     table.insert(args, #args, table.concat { '--sub-delay=', mp.get_property("sub-delay") })
     return args
 end
