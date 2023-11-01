@@ -216,23 +216,22 @@ end
 
 encoder = {}
 
-function encoder.get_ext_subs_path()
+function encoder.get_ext_subs_paths()
     local track_list = mp.get_property_native('track-list')
+    local external_subs_list = {}
     for _, track in pairs(track_list) do
-        if track.type == 'sub' and track.selected == true and track.external == true then
-            return track['external-filename']
+        if track.type == 'sub' and track.external == true then
+            external_subs_list[track.id] = track['external-filename']
         end
     end
-    return nil
+    return external_subs_list
 end
 
 function encoder.append_embed_subs_args(args)
-    local ext_subs_path = encoder.get_ext_subs_path()
-    if ext_subs_path then
+    local ext_subs_paths = encoder.get_ext_subs_paths()
+    for _, ext_subs_path in pairs(ext_subs_paths) do
         table.insert(args, #args, table.concat { '--sub-files-append=', ext_subs_path, })
     end
-    table.insert(args, #args, table.concat { '--sid=', ext_subs_path and 'auto' or mp.get_property("sid") })
-    table.insert(args, #args, table.concat { '--sub-delay=', mp.get_property("sub-delay") })
     return args
 end
 
@@ -266,16 +265,19 @@ encoder.mkargs_video = function(clip_filename)
         table.concat { '--ovcopts-add=preset=', config.preset },
         table.concat { '--vf-add=scale=', config.video_width, ':', config.video_height },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', clip_path }
+        table.concat { '-o=', clip_path },
+        table.concat { '--sid=', mp.get_property("sid") },
+        table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
+        table.concat { '--sub-delay=', mp.get_property("sub-delay") },
+        table.concat { '--sub-visibility=', mp.get_property("sub-visibility") },
+        table.concat { '--secondary-sub-visibility=', mp.get_property("secondary-sub-visibility") }
     }
 
     if config.video_fps ~= 'auto' then
         table.insert(args, #args, table.concat { '--vf-add=fps=', config.video_fps })
     end
 
-    if mp.get_property_bool("sub-visibility") == true then
-        args = encoder.append_embed_subs_args(args)
-    end
+    args = encoder.append_embed_subs_args(args)
 
     return args
 end
