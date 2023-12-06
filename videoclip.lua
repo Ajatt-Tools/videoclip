@@ -631,8 +631,8 @@ function pref_menu:save()
         video_codec = true,
         audio_codec = true,
     }
-    local mpv_dirpath = string.gsub(mp.get_script_directory(), "scripts/%w+", "")
-    local config_filepath = utils.join_path(mpv_dirpath, string.format('script-opts/%s.conf', NAME))
+    local mpv_dirpath = string.gsub(mp.get_script_directory(), "scripts[\\/]%w+", "")
+    local config_filepath = utils.join_path(utils.join_path(mpv_dirpath, "script-opts"), string.format('%s.conf', NAME))
     local handle = io.open(config_filepath, 'w')
     if handle ~= nil then
         handle:write(string.format("# Written by %s on %s.\n", NAME, os.date()))
