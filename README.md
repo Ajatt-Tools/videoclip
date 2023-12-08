@@ -26,6 +26,20 @@ Subtitles can be embedded into the clips.
 
 ## Installation
 
+### Using git
+
+Clone the repository to the `mpv/scripts` directory:
+
+``` bash
+git clone 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
+```
+
+To update the user-script on demand later, you can execute:
+
+``` bash
+cd ~/.config/mpv/scripts/videoclip && git pull
+```
+
 ### Manually
 
 Download
@@ -58,26 +72,6 @@ in the preferences dialog and dropping the files there.
 ```
 
 </details>
-
-### Using git
-
-If you already have your dotfiles set up according to
-[Arch Wiki recommendations](https://wiki.archlinux.org/index.php/Dotfiles#Tracking_dotfiles_directly_with_Git), execute:
-```
-$ config submodule add 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
-```
-
-If not, either proceed to Arch Wiki and come back when you're done, or simply clone the repo:
-```
-$ git clone 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
-```
-
-### Updating with git
-
-| Install method | Command |
-| --- | --- |
-| Submodules | `$ config submodule update --remote --merge` |
-| Plain git | `$ cd ~/.config/mpv/scripts/videoclip && git pull` |
 
 ## Configuration
 
