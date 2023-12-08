@@ -112,7 +112,7 @@ local function human_readable_time(seconds)
     return ret
 end
 
-local function construct_filename()
+local function construct_output_filename_noext()
     local filename = mp.get_property("filename") -- filename without path
 
     filename = remove_extension(filename)
@@ -235,8 +235,11 @@ function encoder.append_embed_subs_args(args)
     return args
 end
 
-encoder.mkargs_video = function(clip_filename)
-    local clip_path = utils.join_path(config.video_folder_path, clip_filename .. config.video_extension)
+encoder.mk_out_path_video = function(clip_filename_noext)
+    return utils.join_path(config.video_folder_path, clip_filename_noext .. config.video_extension)
+end
+
+encoder.mkargs_video = function(out_clip_path)
     local args = {
         'mpv',
         mp.get_property('path'),
@@ -265,7 +268,7 @@ encoder.mkargs_video = function(clip_filename)
         table.concat { '--ovcopts-add=preset=', config.preset },
         table.concat { '--vf-add=scale=', config.video_width, ':', config.video_height },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', clip_path },
+        table.concat { '-o=', out_clip_path },
         table.concat { '--sid=', mp.get_property("sid") },
         table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
         table.concat { '--sub-delay=', mp.get_property("sub-delay") },
@@ -282,8 +285,11 @@ encoder.mkargs_video = function(clip_filename)
     return args
 end
 
-encoder.mkargs_audio = function(clip_filename)
-    local clip_path = utils.join_path(config.audio_folder_path, clip_filename .. config.audio_extension)
+encoder.mk_out_path_audio = function(clip_filename_noext)
+    return utils.join_path(config.audio_folder_path, clip_filename_noext .. config.audio_extension)
+end
+
+encoder.mkargs_audio = function(out_clip_path)
     return {
         'mpv',
         mp.get_property('path'),
@@ -303,7 +309,7 @@ encoder.mkargs_audio = function(clip_filename)
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--oacopts-add=b=', config.audio_bitrate },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', clip_path }
+        table.concat { '-o=', out_clip_path }
     }
 end
 
@@ -318,27 +324,33 @@ encoder.create_clip = function(clip_type, on_complete)
         return
     end
 
-    local clip_filename = construct_filename()
     h.notify("Please wait...", "info", 9999)
 
-    local args
-    local location
+    local output_file_path, args  = (function()
+        local clip_filename_noext = construct_output_filename_noext()
+        if clip_type == 'video' then
+            local output_path = encoder.mk_out_path_video(clip_filename_noext)
+            return output_path, encoder.mkargs_video(output_path)
+        else
+            local output_path = encoder.mk_out_path_audio(clip_filename_noext)
+            return output_path, encoder.mkargs_audio(output_path)
+        end
+    end)()
 
-    if clip_type == 'video' then
-        args = encoder.mkargs_video(clip_filename)
-        location = config.video_folder_path
-    else
-        args = encoder.mkargs_audio(clip_filename)
-        location = config.audio_folder_path
+    local output_dir_path = utils.split_path(output_file_path)
+    local location_info = utils.file_info(output_dir_path)
+    if not location_info.is_dir then
+        h.notify(string.format("Error: location %s doesn't exist.", output_dir_path), "error", 5)
+        return
     end
 
     local process_result = function(_, ret, _)
         if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
-            h.notify(string.format("Error: couldn't create the clip.\nDoes %s exist?", location), "error", 5)
+            h.notify(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
         else
-            h.notify(string.format("Clip saved to %s.", location), "info", 2)
+            h.notify(string.format("Clip saved to %s.", output_dir_path), "info", 2)
             if on_complete then
-                on_complete(utils.join_path(config.video_folder_path, clip_filename .. config.video_extension))
+                on_complete(output_file_path)
             end
         end
     end
