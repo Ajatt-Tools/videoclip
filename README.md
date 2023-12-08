@@ -11,6 +11,19 @@ Easily create video and audio clips with mpv in a few keypresses.
 Videoclips are saved as `.mp4` or `.webm`.
 Subtitles can be embedded into the clips.
 
+## Prerequisites
+
+1) [Install mpv](https://mpv.io/installation/).
+2) Add the directory where `mpv` is installed
+   to the [PATH](https://www.mojeek.com/search?q=path+variable).
+
+   If you're using GNU/Linux, this step is likely unnecessary
+   because package managers (`apt`, `pacman`, etc.)
+   place executable files to `/usr/bin` which is already added to the `PATH`.
+   If you have installed `mpv` to a non-standard location,
+   or if you're not using the GNU operating system,
+   you need to make sure that `mpv` is added to the `PATH`.
+
 ## Installation
 
 ### Manually
