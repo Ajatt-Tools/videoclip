@@ -24,6 +24,8 @@ local utils = require('mp.utils')
 local OSD = require('osd_styler')
 local p = require('platform')
 local h = require('helpers')
+local encoder = require('encoder')
+local Timings = require('timings_mgr')
 
 ------------------------------------------------------------
 -- System-dependent variables
@@ -61,8 +63,6 @@ local config = {
 mpopt.read_options(config, NAME)
 local main_menu
 local pref_menu
-local encoder
-local Timings
 
 local allowed_presets = {
     ultrafast = true,
@@ -78,59 +78,6 @@ local allowed_presets = {
 
 ------------------------------------------------------------
 -- Utility functions
-
-local function remove_extension(filename)
-    return filename:gsub('%.%w+$', '')
-end
-
-local function remove_text_in_brackets(str)
-    return str:gsub('%b[]', '')
-end
-
-local function remove_special_characters(str)
-    return str:gsub('[%-_]', ' '):gsub('[%c%p]', ''):gsub('%s+', ' ')
-end
-
-local function human_readable_time(seconds)
-    if type(seconds) ~= 'number' or seconds < 0 then
-        return 'empty'
-    end
-
-    local parts = {}
-
-    parts.h = math.floor(seconds / 3600)
-    parts.m = math.floor(seconds / 60) % 60
-    parts.s = math.floor(seconds % 60)
-    parts.ms = math.floor((seconds * 1000) % 1000)
-
-    local ret = string.format("%02dm%02ds%03dms", parts.m, parts.s, parts.ms)
-
-    if parts.h > 0 then
-        ret = string.format('%dh%s', parts.h, ret)
-    end
-
-    return ret
-end
-
-local function construct_output_filename_noext()
-    local filename = mp.get_property("filename") -- filename without path
-
-    filename = remove_extension(filename)
-
-    if config.clean_filename then
-        filename = remove_text_in_brackets(filename)
-        filename = remove_special_characters(filename)
-    end
-
-    filename = string.format(
-            '%s_%s-%s',
-            filename,
-            human_readable_time(main_menu.timings['start']),
-            human_readable_time(main_menu.timings['end'])
-    )
-
-    return filename
-end
 
 local function force_resolution(width, height, clip_fn, ...)
     local cached_prefs = {
@@ -212,154 +159,6 @@ local function upload_to_catbox(outfile)
 end
 
 ------------------------------------------------------------
--- Provides interface for creating audio/video clips
-
-encoder = {}
-
-function encoder.get_ext_subs_paths()
-    local track_list = mp.get_property_native('track-list')
-    local external_subs_list = {}
-    for _, track in pairs(track_list) do
-        if track.type == 'sub' and track.external == true then
-            external_subs_list[track.id] = track['external-filename']
-        end
-    end
-    return external_subs_list
-end
-
-function encoder.append_embed_subs_args(args)
-    local ext_subs_paths = encoder.get_ext_subs_paths()
-    for _, ext_subs_path in pairs(ext_subs_paths) do
-        table.insert(args, #args, table.concat { '--sub-files-append=', ext_subs_path, })
-    end
-    return args
-end
-
-encoder.mk_out_path_video = function(clip_filename_noext)
-    return utils.join_path(config.video_folder_path, clip_filename_noext .. config.video_extension)
-end
-
-encoder.mkargs_video = function(out_clip_path)
-    local args = {
-        'mpv',
-        mp.get_property('path'),
-        '--loop-file=no',
-        '--keep-open=no',
-        '--no-ocopy-metadata',
-        '--no-sub',
-        '--audio-channels=2',
-        '--oacopts-add=vbr=on',
-        '--oacopts-add=application=voip',
-        '--oacopts-add=compression_level=10',
-        '--vf-add=format=yuv420p',
-        '--sub-font-provider=auto',
-        '--embeddedfonts=yes',
-        table.concat { '--sub-font=', config.sub_font },
-        table.concat { '--ovc=', config.video_codec },
-        table.concat { '--oac=', config.audio_codec },
-        table.concat { '--start=', main_menu.timings['start'] },
-        table.concat { '--end=', main_menu.timings['end'] },
-        table.concat { '--aid=', mp.get_property("aid") }, -- track number
-        table.concat { '--mute=', mp.get_property("mute") },
-        table.concat { '--volume=', mp.get_property('volume') },
-        table.concat { '--ovcopts-add=b=', config.video_bitrate },
-        table.concat { '--oacopts-add=b=', config.audio_bitrate },
-        table.concat { '--ovcopts-add=crf=', config.video_quality },
-        table.concat { '--ovcopts-add=preset=', config.preset },
-        table.concat { '--vf-add=scale=', config.video_width, ':', config.video_height },
-        table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', out_clip_path },
-        table.concat { '--sid=', mp.get_property("sid") },
-        table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
-        table.concat { '--sub-delay=', mp.get_property("sub-delay") },
-        table.concat { '--sub-visibility=', mp.get_property("sub-visibility") },
-        table.concat { '--secondary-sub-visibility=', mp.get_property("secondary-sub-visibility") }
-    }
-
-    if config.video_fps ~= 'auto' then
-        table.insert(args, #args, table.concat { '--vf-add=fps=', config.video_fps })
-    end
-
-    args = encoder.append_embed_subs_args(args)
-
-    return args
-end
-
-encoder.mk_out_path_audio = function(clip_filename_noext)
-    return utils.join_path(config.audio_folder_path, clip_filename_noext .. config.audio_extension)
-end
-
-encoder.mkargs_audio = function(out_clip_path)
-    return {
-        'mpv',
-        mp.get_property('path'),
-        '--loop-file=no',
-        '--keep-open=no',
-        '--no-ocopy-metadata',
-        '--no-sub',
-        '--audio-channels=2',
-        '--video=no',
-        '--oacopts-add=vbr=on',
-        '--oacopts-add=application=voip',
-        '--oacopts-add=compression_level=10',
-        table.concat { '--oac=', config.audio_codec },
-        table.concat { '--start=', main_menu.timings['start'] },
-        table.concat { '--end=', main_menu.timings['end'] },
-        table.concat { '--volume=', mp.get_property('volume') },
-        table.concat { '--aid=', mp.get_property("aid") }, -- track number
-        table.concat { '--oacopts-add=b=', config.audio_bitrate },
-        table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', out_clip_path }
-    }
-end
-
-encoder.create_clip = function(clip_type, on_complete)
-    main_menu:close();
-    if clip_type == nil then
-        return
-    end
-
-    if not main_menu.timings:validate() then
-        h.notify("Wrong timings. Aborting.", "warn", 2)
-        return
-    end
-
-    h.notify("Please wait...", "info", 9999)
-
-    local output_file_path, args  = (function()
-        local clip_filename_noext = construct_output_filename_noext()
-        if clip_type == 'video' then
-            local output_path = encoder.mk_out_path_video(clip_filename_noext)
-            return output_path, encoder.mkargs_video(output_path)
-        else
-            local output_path = encoder.mk_out_path_audio(clip_filename_noext)
-            return output_path, encoder.mkargs_audio(output_path)
-        end
-    end)()
-
-    local output_dir_path = utils.split_path(output_file_path)
-    local location_info = utils.file_info(output_dir_path)
-    if not location_info.is_dir then
-        h.notify(string.format("Error: location %s doesn't exist.", output_dir_path), "error", 5)
-        return
-    end
-
-    local process_result = function(_, ret, _)
-        if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
-            h.notify(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
-        else
-            h.notify(string.format("Clip saved to %s.", output_dir_path), "info", 2)
-            if on_complete then
-                on_complete(output_file_path)
-            end
-        end
-    end
-
-    h.subprocess_async(args, process_result)
-    main_menu.timings:reset()
-end
-
-------------------------------------------------------------
 -- Menu interface
 
 local Menu = {}
@@ -410,6 +209,7 @@ end
 -- Main menu
 
 main_menu = Menu:new()
+main_menu.timings = Timings:new()
 
 main_menu.keybindings = {
     { key = 's', fn = function() main_menu:set_time('start') end },
@@ -417,11 +217,11 @@ main_menu.keybindings = {
     { key = 'S', fn = function() main_menu:set_time_sub('start') end },
     { key = 'E', fn = function() main_menu:set_time_sub('end') end },
     { key = 'r', fn = function() main_menu:reset_timings() end },
-    { key = 'c', fn = function() encoder.create_clip('video') end },
+    { key = 'c', fn = function() main_menu:create_clip('video') end },
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
-    { key = 'a', fn = function() encoder.create_clip('audio') end },
-    { key = 'x', fn = function() main_menu:create_clip_and_upload_to_catbox() end },
-    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.create_clip_and_upload_to_catbox) end },
+    { key = 'a', fn = function() main_menu:create_clip('audio') end },
+    { key = 'x', fn = function() main_menu:create_clip('video', upload_to_catbox) end },
+    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.create_clip, 'video', upload_to_catbox) end },
     { key = 'p', fn = function() pref_menu:open() end },
     { key = 'o', fn = function() p.open('https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
@@ -446,20 +246,19 @@ function main_menu:set_time_sub(property)
 end
 
 function main_menu:reset_timings()
-    self.timings = Timings:new()
+    self.timings:reset()
     self:update()
 end
 
 main_menu.open = function()
-    main_menu.timings = main_menu.timings or Timings:new()
     Menu.open(main_menu)
 end
 
 function main_menu:update()
     local osd = OSD:new():size(config.font_size):align(4)
     osd:submenu('Clip creator'):newline()
-    osd:tab():item('Start time: '):append(human_readable_time(self.timings['start'])):newline()
-    osd:tab():item('End time: '):append(human_readable_time(self.timings['end'])):newline()
+    osd:tab():item('Start time: '):append(h.human_readable_time(self.timings['start'])):newline()
+    osd:tab():item('End time: '):append(h.human_readable_time(self.timings['end'])):newline()
     osd:submenu('Timings '):italics('(+shift use sub timings)'):newline()
     osd:tab():item('s: '):append('Set start'):newline()
     osd:tab():item('e: '):append('Set end'):newline()
@@ -476,8 +275,9 @@ function main_menu:update()
     self:overlay_draw(osd:get_text())
 end
 
-function main_menu:create_clip_and_upload_to_catbox()
-    encoder.create_clip('video', upload_to_catbox)
+function main_menu:create_clip(clip_type, on_complete_fn)
+    self:close()
+    encoder.create_clip(clip_type, on_complete_fn)
 end
 
 ------------------------------------------------------------
@@ -661,32 +461,9 @@ function pref_menu:save()
 end
 
 ------------------------------------------------------------
--- Timings class
-
-Timings = {
-    ['start'] = -1,
-    ['end'] = -1,
-}
-
-function Timings:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function Timings:reset()
-    self['start'] = -1
-    self['end'] = -1
-end
-
-function Timings:validate()
-    return self['start'] >= 0 and self['start'] < self['end']
-end
-
-------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
 validate_config()
+encoder.init(config, main_menu.timings)
 mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
 mp.msg.warn("Press 'c' to open the videoclip menu.")

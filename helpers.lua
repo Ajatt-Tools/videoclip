@@ -50,4 +50,37 @@ this.subprocess_async = function(args, on_complete)
     return mp.command_native_async(command_table, on_complete)
 end
 
+this.remove_extension = function(filename)
+    return filename:gsub('%.%w+$', '')
+end
+
+this.remove_text_in_brackets = function(str)
+    return str:gsub('%b[]', '')
+end
+
+this.remove_special_characters = function(str)
+    return str:gsub('[%-_]', ' '):gsub('[%c%p]', ''):gsub('%s+', ' ')
+end
+
+this.human_readable_time = function(seconds)
+    if type(seconds) ~= 'number' or seconds < 0 then
+        return 'empty'
+    end
+
+    local parts = {}
+
+    parts.h = math.floor(seconds / 3600)
+    parts.m = math.floor(seconds / 60) % 60
+    parts.s = math.floor(seconds % 60)
+    parts.ms = math.floor((seconds * 1000) % 1000)
+
+    local ret = string.format("%02dm%02ds%03dms", parts.m, parts.s, parts.ms)
+
+    if parts.h > 0 then
+        ret = string.format('%dh%s', parts.h, ret)
+    end
+
+    return ret
+end
+
 return this
