@@ -28,7 +28,8 @@ Subtitles can be embedded into the clips.
 
 ### Using git
 
-Clone the repository to the `mpv/scripts` directory:
+Clone the repository to the `mpv/scripts` directory.
+The command below works on the GNU operating system with `git` installed.
 
 ``` bash
 git clone 'https://github.com/Ajatt-Tools/videoclip.git' ~/.config/mpv/scripts/videoclip
