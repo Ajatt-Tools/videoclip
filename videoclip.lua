@@ -256,6 +256,9 @@ end
 
 function main_menu:update()
     local osd = OSD:new():size(config.font_size):align(4)
+    if encoder.alive == false then
+        osd:red("Error: "):append("mpv is not found in the PATH."):newline()
+    end
     osd:submenu('Clip creator'):newline()
     osd:tab():item('Start time: '):append(h.human_readable_time(self.timings['start'])):newline()
     osd:tab():item('End time: '):append(h.human_readable_time(self.timings['end'])):newline()

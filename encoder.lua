@@ -139,7 +139,7 @@ this.create_clip = function(clip_type, on_complete)
 
     h.notify("Please wait...", "info", 9999)
 
-    local output_file_path, args  = (function()
+    local output_file_path, args = (function()
         local clip_filename_noext = construct_output_filename_noext()
         if clip_type == 'video' then
             local output_path = this.mk_out_path_video(clip_filename_noext)
@@ -172,9 +172,22 @@ this.create_clip = function(clip_type, on_complete)
     this.timings:reset()
 end
 
+this.set_encoder_alive = function()
+    local args = { 'mpv', '--version' }
+    local process_result = function(_, ret, _)
+        if ret.status ~= 0 or string.match(ret.stdout, "mpv") == nil then
+            this.alive = false
+        else
+            this.alive = true
+        end
+    end
+    h.subprocess_async(args, process_result)
+end
+
 this.init = function(config, timings_mgr)
     this.config = config
     this.timings = timings_mgr
+    this.set_encoder_alive()
 end
 
 return this

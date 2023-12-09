@@ -26,7 +26,7 @@ function OSD:new()
 end
 
 function OSD:append(s)
-    table.insert(self.messages, s)
+    table.insert(self.messages, tostring(s))
     return self
 end
 
@@ -40,6 +40,10 @@ end
 
 function OSD:size(size)
     return self:append('{\\fs'):append(size):append('}')
+end
+
+function OSD:font(name)
+    return self:append('{\\fn'):append(name):append('}')
 end
 
 function OSD:align(number)
@@ -62,6 +66,10 @@ function OSD:text(text)
     return self:append(text)
 end
 
+function OSD:new_layer()
+    return self:append('\n')
+end
+
 function OSD:bold(s)
     return self:append('{\\b1}'):append(s):append('{\\b0}')
 end
@@ -76,6 +84,14 @@ end
 
 function OSD:item(text)
     return self:color('fef6dd'):bold(text):color('ffffff')
+end
+
+function OSD:selected(text)
+    return self:color('48a868'):bold(text):color('ffffff')
+end
+
+function OSD:red(text)
+    return self:color('ff0000'):bold(text):color('ffffff')
 end
 
 return OSD
