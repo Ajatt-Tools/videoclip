@@ -161,7 +161,7 @@ this.create_clip = function(clip_type, on_complete)
         if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
             h.notify(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
         else
-            h.notify(string.format("Clip saved to %s.", output_dir_path), "info", 2)
+            h.notify(string.format("Clip saved to %s.", output_file_path), "info", 2)
             if on_complete then
                 on_complete(output_file_path)
             end
