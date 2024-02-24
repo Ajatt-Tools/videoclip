@@ -82,7 +82,7 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--ovcopts-add=preset=', this.config.preset },
         table.concat { '--vf-add=scale=', this.config.video_width, ':', this.config.video_height },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', out_clip_path },
+        table.concat { '--o=', out_clip_path },
         table.concat { '--sid=', mp.get_property("sid") },
         table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
         table.concat { '--sub-delay=', mp.get_property("sub-delay") },
@@ -123,7 +123,7 @@ this.mkargs_audio = function(out_clip_path)
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--oacopts-add=b=', this.config.audio_bitrate },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', out_clip_path }
+        table.concat { '--o=', out_clip_path }
     }
 end
 
