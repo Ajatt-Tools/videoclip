@@ -21,10 +21,10 @@ local function construct_output_filename_noext()
     end
 
     filename = string.format(
-            '%s_%s-%s',
-            filename,
-            h.human_readable_time(this.timings['start']),
-            h.human_readable_time(this.timings['end'])
+        '%s_%s-%s',
+        filename,
+        h.human_readable_time(this.timings['start']),
+        h.human_readable_time(this.timings['end'])
     )
 
     return filename
@@ -55,7 +55,7 @@ end
 
 this.mkargs_video = function(out_clip_path)
     local args = {
-        'mpv',
+        this.player,
         mp.get_property('path'),
         '--loop-file=no',
         '--keep-open=no',
@@ -105,7 +105,7 @@ end
 
 this.mkargs_audio = function(out_clip_path)
     return {
-        'mpv',
+        this.player,
         mp.get_property('path'),
         '--loop-file=no',
         '--keep-open=no',
@@ -173,12 +173,24 @@ this.create_clip = function(clip_type, on_complete)
 end
 
 this.set_encoder_alive = function()
-    local args = { 'mpv', '--version' }
-    local process_result = function(_, ret, _)
-        if ret.status ~= 0 or string.match(ret.stdout, "mpv") == nil then
+    local args_mpvnet = { 'mpvnet', '--version' }
+    local process_result_mpvnet = function(_, ret, _)
+        --  for some reason stdout is empty
+        if ret.status ~= 0 then
             this.alive = false
         else
             this.alive = true
+            this.player = 'mpvnet'
+        end
+    end
+
+    local args = { 'mpv', '--version' }
+    local process_result = function(_, ret, _)
+        if ret.status ~= 0 or string.match(ret.stdout, "mpv") == nil then
+            h.subprocess_async(args_mpvnet, process_result_mpvnet)
+        else
+            this.alive = true
+            this.player = 'mpv'
         end
     end
     h.subprocess_async(args, process_result)
