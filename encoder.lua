@@ -21,10 +21,10 @@ local function construct_output_filename_noext()
     end
 
     filename = string.format(
-        '%s_%s-%s',
-        filename,
-        h.human_readable_time(this.timings['start']),
-        h.human_readable_time(this.timings['end'])
+            '%s_%s-%s',
+            filename,
+            h.human_readable_time(this.timings['start']),
+            h.human_readable_time(this.timings['end'])
     )
 
     return filename

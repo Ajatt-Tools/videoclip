@@ -331,9 +331,9 @@ pref_menu.litterbox_expirations = { '1h', '12h', '24h', '72h', }
 
 function pref_menu:get_selected_resolution()
     return string.format(
-        '%s x %s',
-        config.video_width == -2 and 'auto' or config.video_width,
-        config.video_height == -2 and 'auto' or config.video_height
+            '%s x %s',
+            config.video_width == -2 and 'auto' or config.video_width,
+            config.video_height == -2 and 'auto' or config.video_height
     )
 end
 
@@ -469,3 +469,4 @@ end
 validate_config()
 encoder.init(config, main_menu.timings)
 mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
+mp.msg.warn("Press 'c' to open the videoclip menu.")
