@@ -55,7 +55,7 @@ end
 
 this.mkargs_video = function(out_clip_path)
     local args = {
-        'mpv',
+        this.player,
         mp.get_property('path'),
         '--loop-file=no',
         '--keep-open=no',
@@ -82,7 +82,7 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--ovcopts-add=preset=', this.config.preset },
         table.concat { '--vf-add=scale=', this.config.video_width, ':', this.config.video_height },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', out_clip_path },
+        table.concat { '--o=', out_clip_path },
         table.concat { '--sid=', mp.get_property("sid") },
         table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
         table.concat { '--sub-delay=', mp.get_property("sub-delay") },
@@ -105,7 +105,7 @@ end
 
 this.mkargs_audio = function(out_clip_path)
     return {
-        'mpv',
+        this.player,
         mp.get_property('path'),
         '--loop-file=no',
         '--keep-open=no',
@@ -123,7 +123,7 @@ this.mkargs_audio = function(out_clip_path)
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--oacopts-add=b=', this.config.audio_bitrate },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-        table.concat { '-o=', out_clip_path }
+        table.concat { '--o=', out_clip_path }
     }
 end
 
@@ -161,7 +161,7 @@ this.create_clip = function(clip_type, on_complete)
         if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
             h.notify(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
         else
-            h.notify(string.format("Clip saved to %s.", output_dir_path), "info", 2)
+            h.notify(string.format("Clip saved to %s.", output_file_path), "info", 2)
             if on_complete then
                 on_complete(output_file_path)
             end
@@ -173,12 +173,24 @@ this.create_clip = function(clip_type, on_complete)
 end
 
 this.set_encoder_alive = function()
-    local args = { 'mpv', '--version' }
-    local process_result = function(_, ret, _)
-        if ret.status ~= 0 or string.match(ret.stdout, "mpv") == nil then
+    local args_mpvnet = { 'mpvnet', '--version' }
+    local process_result_mpvnet = function(_, ret, _)
+        --  for some reason stdout is empty
+        if ret.status ~= 0 then
             this.alive = false
         else
             this.alive = true
+            this.player = 'mpvnet'
+        end
+    end
+
+    local args = { 'mpv', '--version' }
+    local process_result = function(_, ret, _)
+        if ret.status ~= 0 or string.match(ret.stdout, "mpv") == nil then
+            h.subprocess_async(args_mpvnet, process_result_mpvnet)
+        else
+            this.alive = true
+            this.player = 'mpv'
         end
     end
     h.subprocess_async(args, process_result)
