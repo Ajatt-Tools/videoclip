@@ -83,4 +83,16 @@ this.human_readable_time = function(seconds)
     return ret
 end
 
+this.quote_if_necessary = function(args)
+    local ret = {}
+    for _, v in ipairs(args) do
+        if v:find(" ") then
+            table.insert(ret, (v:find("'") and string.format('"%s"', v) or string.format("'%s'", v)))
+        else
+            table.insert(ret, v)
+        end
+    end
+    return ret
+end
+
 return this

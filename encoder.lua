@@ -150,6 +150,8 @@ this.create_clip = function(clip_type, on_complete)
         end
     end)()
 
+    print("The following args will be executed:", table.concat(h.quote_if_necessary(args), " ") )
+
     local output_dir_path = utils.split_path(output_file_path)
     local location_info = utils.file_info(output_dir_path)
     if not location_info.is_dir then
