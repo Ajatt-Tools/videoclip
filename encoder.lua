@@ -10,6 +10,11 @@ local h = require('helpers')
 local utils = require('mp.utils')
 local this = {}
 
+local function toms(timestamp)
+    --- Trim timestamp down to milliseconds.
+    return string.format("%.3f", timestamp)
+end
+
 local function construct_output_filename_noext()
     local filename = mp.get_property("filename") -- filename without path
 
@@ -71,8 +76,8 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--sub-font=', this.config.sub_font },
         table.concat { '--ovc=', this.config.video_codec },
         table.concat { '--oac=', this.config.audio_codec },
-        table.concat { '--start=', this.timings['start'] },
-        table.concat { '--end=', this.timings['end'] },
+        table.concat { '--start=', toms(this.timings['start']) },
+        table.concat { '--end=', toms(this.timings['end']) },
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--mute=', mp.get_property("mute") },
         table.concat { '--volume=', mp.get_property('volume') },
@@ -117,8 +122,8 @@ this.mkargs_audio = function(out_clip_path)
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
         table.concat { '--oac=', this.config.audio_codec },
-        table.concat { '--start=', this.timings['start'] },
-        table.concat { '--end=', this.timings['end'] },
+        table.concat { '--start=', toms(this.timings['start']) },
+        table.concat { '--end=', toms(this.timings['end']) },
         table.concat { '--volume=', mp.get_property('volume') },
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--oacopts-add=b=', this.config.audio_bitrate },
