@@ -7,6 +7,7 @@ Various helper functions.
 
 local mp = require('mp')
 local this = {}
+local ass_start = mp.get_property_osd("osd-ass-cc/0")
 
 this.is_wayland = function()
     return os.getenv('WAYLAND_DISPLAY') ~= nil
@@ -24,7 +25,11 @@ this.notify = function(message, level, duration)
     level = level or 'info'
     duration = duration or 1
     mp.msg[level](message)
-    mp.osd_message(message, duration)
+    mp.osd_message(ass_start .. "{\\fs12}{\\bord0.75}" .. message, duration)
+end
+
+this.notify_error = function(message, level, duration)
+    this.notify("{\\c&H7171f8&}" .. message, level, duration)
 end
 
 this.subprocess = function(args, stdin)

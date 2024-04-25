@@ -53,6 +53,7 @@ local config = {
     audio_bitrate = '32k', -- 32k, 64k, 128k, 256k. aac requires higher bitrates.
     font_size = 24,
     osd_align = 7, -- https://aegisub.org/docs/3.2/ASS_Tags/#\an
+    osd_outline = 1.5,
     clean_filename = true,
     -- Whether to upload to catbox (permanent) or litterbox (temporary)
     litterbox = true,
@@ -147,10 +148,10 @@ local function upload_to_catbox(outfile)
     -- Exit codes in the range [0, 99] are returned by cURL itself.
     -- Any other exit code means the shell failed to execute cURL.
     if r.status < 0 or r.status > 99 then
-        h.notify("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
+        h.notify_error("Error: Failed to upload. Make sure cURL is installed and in your PATH.", "error", 3)
         return
     elseif r.status ~= 0 then
-        h.notify("Error: Failed to upload to " .. (config.litterbox and "litterbox.catbox.moe" or "catbox.moe"), "error", 2)
+        h.notify_error("Error: Failed to upload to " .. (config.litterbox and "litterbox.catbox.moe" or "catbox.moe"), "error", 2)
         return
     end
 
@@ -201,7 +202,7 @@ function Menu:close()
 end
 
 function Menu:update()
-    local osd = OSD:new():size(config.font_size):align(config.osd_align)
+    local osd = OSD:new():config(config)
     osd:append('Dummy menu.'):newline()
     self:overlay_draw(osd:get_text())
 end
@@ -238,7 +239,7 @@ function main_menu:set_time_sub(property)
     local time_pos = mp.get_property_number(string.format("sub-%s", property))
 
     if time_pos == nil then
-        h.notify("Warning: No subtitles visible.", "warn", 2)
+        h.notify_error("Warning: No subtitles visible.", "warn", 2)
         return
     end
 
@@ -256,7 +257,7 @@ main_menu.open = function()
 end
 
 function main_menu:update()
-    local osd = OSD:new():size(config.font_size):align(config.osd_align)
+    local osd = OSD:new():config(config)
     if encoder.alive == false then
         osd:red("Error: "):append("mpv is not found in the PATH."):newline()
     end
@@ -413,7 +414,7 @@ function pref_menu:cycle_litterbox_expiration()
 end
 
 function pref_menu:update()
-    local osd = OSD:new():size(config.font_size):align(config.osd_align)
+    local osd = OSD:new():config(config)
     osd:submenu('Preferences'):newline()
     osd:tab():item('r: Video resolution: '):append(self:get_selected_resolution()):newline()
     osd:tab():item('f: Video format: '):append(config.video_format):newline()
@@ -460,7 +461,7 @@ function pref_menu:save()
         handle:close()
         h.notify("Settings saved.", "info", 2)
     else
-        h.notify(string.format("Couldn't open %s.", config_filepath), "error", 4)
+        h.notify_error(string.format("Couldn't open %s.", config_filepath), "error", 4)
     end
 end
 

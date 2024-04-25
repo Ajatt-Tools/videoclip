@@ -139,7 +139,7 @@ this.create_clip = function(clip_type, on_complete)
     end
 
     if not this.timings:validate() then
-        h.notify("Wrong timings. Aborting.", "warn", 2)
+        h.notify_error("Wrong timings. Aborting.", "warn", 2)
         return
     end
 
@@ -161,13 +161,13 @@ this.create_clip = function(clip_type, on_complete)
     local output_dir_path = utils.split_path(output_file_path)
     local location_info = utils.file_info(output_dir_path)
     if not location_info or not location_info.is_dir then
-        h.notify(string.format("Error: location %s doesn't exist.", output_dir_path), "error", 5)
+        h.notify_error(string.format("Error: location %s doesn't exist.", output_dir_path), "error", 5)
         return
     end
 
     local process_result = function(_, ret, _)
         if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
-            h.notify(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
+            h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
         else
             h.notify(string.format("Clip saved to %s.", output_file_path), "info", 2)
             if on_complete then

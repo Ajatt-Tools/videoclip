@@ -38,6 +38,17 @@ function OSD:tab()
     return self:append([[\h\h\h\h]])
 end
 
+function OSD:config(config)
+    return self
+        :size(config.font_size)
+        :align(config.osd_align)
+        :outline(config.osd_outline)
+end
+
+function OSD:outline(size)
+    return self:append('{\\bord'):append(size):append('}')
+end
+
 function OSD:size(size)
     return self:append('{\\fs'):append(size):append('}')
 end
@@ -79,11 +90,11 @@ function OSD:italics(s)
 end
 
 function OSD:submenu(text)
-    return self:color('ffe1d0'):bold(text):color('ffffff')
+    return self:color('e56243'):bold(text):color('ffffff')
 end
 
 function OSD:item(text)
-    return self:color('fef6dd'):bold(text):color('ffffff')
+    return self:color('f5d38a'):bold(text):color('ffffff')
 end
 
 function OSD:selected(text)

@@ -80,7 +80,7 @@ this.copy_or_open_url = function(url)
                 "Failed to copy URL to clipboard, trying to open in browser instead. Make sure %s is installed.",
                 this.clipboard.clip_exe
         )
-        h.notify(msg, "warn", 4)
+        h.notify_error(msg, "warn", 4)
         this.open(url)
     else
         h.notify("Done! Copied URL to clipboard.", "info", 2)
