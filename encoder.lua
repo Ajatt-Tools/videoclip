@@ -159,7 +159,7 @@ this.create_clip = function(clip_type, on_complete)
 
     local output_dir_path = utils.split_path(output_file_path)
     local location_info = utils.file_info(output_dir_path)
-    if not location_info.is_dir then
+    if not location_info or not location_info.is_dir then
         h.notify(string.format("Error: location %s doesn't exist.", output_dir_path), "error", 5)
         return
     end
