@@ -1,11 +1,11 @@
-![screenshot](https://user-images.githubusercontent.com/69171671/97077527-0836ef00-15d4-11eb-92a5-bfa236a6b118.png)
+![screenshot](https://github.com/Lemmmy/videoclip/assets/858456/855bff15-b0cd-4c12-a9ac-40a5e01d3b83)
 
 # videoclip
 
 [![Chat](https://img.shields.io/badge/chat-join-green)](https://tatsumoto-ren.github.io/blog/join-our-community.html)
 ![GitHub](https://img.shields.io/github/license/Ajatt-Tools/videoclip)
 ![GitHub top language](https://img.shields.io/github/languages/top/Ajatt-Tools/videoclip)
-![Lines of code](https://img.shields.io/tokei/lines/github/Ajatt-Tools/videoclip)
+[![Patreon](https://img.shields.io/badge/support-patreon-orange)](https://tatsumoto.neocities.org/blog/donating-to-tatsumoto.html)
 
 Easily create video and audio clips with mpv in a few keypresses.
 Videoclips are saved as `.mp4` or `.webm`.
@@ -96,6 +96,11 @@ audio_folder_path=/home/user/Music
 
 # Menu size
 font_size=24
+
+# OSD settings. Line alignment: https://aegisub.org/docs/3.2/ASS_Tags/#\an
+osd_align=7
+osd_outline=1.5
+
 # Clean filenames (remove special characters) (yes or no)
 clean_filename=yes
 
