@@ -24,7 +24,7 @@ local function construct_output_filename_noext()
         filename = h.remove_text_in_brackets(filename)
         filename = h.remove_special_characters(filename)
         -- remove_text_in_brackets might leave spaces at the start or the end, so trim those
-        filename = string.gsub(filename, "^%s*(.-)%s*$", "%1")
+        filename = h.strip(filename)
     end
 
     filename = string.format(

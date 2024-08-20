@@ -67,6 +67,10 @@ this.remove_special_characters = function(str)
     return str:gsub('[%-_]', ' '):gsub('[%c%p]', ''):gsub('%s+', ' ')
 end
 
+this.strip = function(str)
+    return str:gsub("^%s*(.-)%s*$", "%1")
+end
+
 this.human_readable_time = function(seconds)
     if type(seconds) ~= 'number' or seconds < 0 then
         return 'empty'
