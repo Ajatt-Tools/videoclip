@@ -20,11 +20,11 @@ this.platform = (
                 or h.is_mac() and this.Platform.macos
                 or this.Platform.gnu_linux
 )
-this.default_video_folder = utils.join_path(
+this.default_video_folder = io.popen("xdg-user-dir VIDEOS"):read("*l") or utils.join_path(
         (os.getenv("HOME") or os.getenv("USERPROFILE")),
         (this.platform == this.Platform.macos and "Movies" or "Videos")
 )
-this.default_audio_folder = utils.join_path(
+this.default_audio_folder = io.popen("xdg-user-dir MUSIC"):read("*l") or utils.join_path(
         (os.getenv("HOME") or os.getenv('USERPROFILE')),
         "Music"
 )
