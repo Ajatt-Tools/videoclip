@@ -27,12 +27,12 @@ local function construct_output_filename_noext()
         filename = h.strip(filename)
     end
 
-    filename = string.format(
-            '%s_%s-%s',
-            filename,
-            h.human_readable_time(this.timings['start']),
-            h.human_readable_time(this.timings['end'])
-    )
+    -- Available tags: %n = name, %s = start, %e = end, %d = duration
+    filename = this.config.filename_template
+            :gsub("%%n", filename)
+            :gsub("%%s", h.human_readable_time(this.timings['start']))
+            :gsub("%%e", h.human_readable_time(this.timings['end']))
+            :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
 
     return filename
 end

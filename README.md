@@ -134,6 +134,11 @@ litterbox=yes
 # If using litterbox, time until video expires
 # Available values: 1h, 12h, 24h, 72h
 litterbox_expire=72h
+
+# Filename format
+# Available tags: %n = name, %s = start, %e = end, %d = duration
+#filename_template=%n_%s-%e(%d)
+filename_template=%n_%s-%e
 ```
 
 ### Key bindings
