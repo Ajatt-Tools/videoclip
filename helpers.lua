@@ -71,6 +71,10 @@ this.strip = function(str)
     return str:gsub("^%s*(.-)%s*$", "%1")
 end
 
+this.expand_path = function (str)
+    return mp.command_native({"expand-path", str})
+end
+
 this.human_readable_time = function(seconds)
     if type(seconds) ~= 'number' or seconds < 0 then
         return 'empty'
