@@ -20,11 +20,11 @@ this.platform = (
                 or h.is_mac() and this.Platform.macos
                 or this.Platform.gnu_linux
 )
-this.default_video_folder = h.subprocess({"xdg-user-dir","VIDEOS"}).stdout:gsub("\n$","") or utils.join_path(
+this.default_video_folder = h.strip(h.subprocess({"xdg-user-dir","VIDEOS"}).stdout) or utils.join_path(
         (os.getenv("HOME") or os.getenv("USERPROFILE")),
         (this.platform == this.Platform.macos and "Movies" or "Videos")
 )
-this.default_audio_folder = h.subprocess({"xdg-user-dir","DESKTOP"}).stdout:gsub("\n$","") or utils.join_path(
+this.default_audio_folder = h.strip(h.subprocess({"xdg-user-dir","DESKTOP"}).stdout) or utils.join_path(
         (os.getenv("HOME") or os.getenv('USERPROFILE')),
         "Music"
 )
