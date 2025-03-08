@@ -104,4 +104,17 @@ this.quote_if_necessary = function(args)
     return ret
 end
 
+this.query_xdg_user_dir = function(name)
+    local r = this.subprocess({ "xdg-user-dir", name })
+    if r.status == 0 then
+        return this.strip(r.stdout)
+    end
+    return nil
+end
+
+this.query_user_home_dir = function()
+    --- "USERPROFILE" is used on ReactOS and other Windows-like systems.
+    return os.getenv("HOME") or os.getenv("USERPROFILE")
+end
+
 return this

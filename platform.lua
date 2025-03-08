@@ -10,6 +10,17 @@ local mp = require('mp')
 local utils = require('mp.utils')
 local this = {}
 
+local function get_fallback_video_dir()
+    return utils.join_path(
+            h.query_user_home_dir(),
+            (this.platform == this.Platform.macos and "Movies" or "Videos")
+    )
+end
+
+local function get_fallback_music_dir()
+    return utils.join_path(h.query_user_home_dir(), "Music")
+end
+
 this.Platform = {
     gnu_linux = "gnu_linux",
     macos = "macos",
@@ -20,14 +31,8 @@ this.platform = (
                 or h.is_mac() and this.Platform.macos
                 or this.Platform.gnu_linux
 )
-this.default_video_folder = utils.join_path(
-        (os.getenv("HOME") or os.getenv("USERPROFILE")),
-        (this.platform == this.Platform.macos and "Movies" or "Videos")
-)
-this.default_audio_folder = utils.join_path(
-        (os.getenv("HOME") or os.getenv('USERPROFILE')),
-        "Music"
-)
+this.default_video_folder = h.query_xdg_user_dir("VIDEOS") or get_fallback_video_dir()
+this.default_audio_folder = h.query_xdg_user_dir("MUSIC") or get_fallback_music_dir()
 this.curl_exe = (this.platform == this.Platform.windows and 'curl.exe' or 'curl')
 this.open_utility = (
         this.platform == this.Platform.windows and 'explorer.exe'
