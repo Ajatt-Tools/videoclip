@@ -90,6 +90,7 @@ Example configuration file:
 
 ```
 # Absolute paths to the folders where generated clips will be placed.
+# `~` are supported but variables (e.g. `$HOME`) are not supported due to mpv limitations.
 video_folder_path=~/Videos
 audio_folder_path=~/Music
 
