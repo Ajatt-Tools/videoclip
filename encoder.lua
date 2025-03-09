@@ -29,6 +29,7 @@ end
 local function construct_output_filename_noext()
     local filename = mp.get_property("filename") -- filename without path
     local title = mp.get_property("media-title") -- if the video doesn't have a title, it will fallback to filename
+    local date = os.date("*t") -- get current date and time as table
 
     -- Apply the same operation when the video doesn't have a title
     -- thus it will be the same as filename
@@ -39,13 +40,23 @@ local function construct_output_filename_noext()
         filename = clean_filename(filename)
     end
 
-    -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration
+    -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
+    --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
+    --                 %P = am/pm %N = minutes, %S = seconds
     filename = this.config.filename_template
-                   :gsub("%%n", filename)
-                   :gsub("%%t", title)
-                   :gsub("%%s", h.human_readable_time(this.timings['start']))
-                   :gsub("%%e", h.human_readable_time(this.timings['end']))
-                   :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
+            :gsub("%%n", filename)
+            :gsub("%%t", title)
+            :gsub("%%s", h.human_readable_time(this.timings['start']))
+            :gsub("%%e", h.human_readable_time(this.timings['end']))
+            :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
+            :gsub("%%Y", date.year)
+            :gsub("%%M", h.two_digit(date.month))
+            :gsub("%%D", h.two_digit(date.day))
+            :gsub("%%H", h.two_digit(date.hour))
+            :gsub("%%I", h.two_digit(h.twelve_hour(date.hour)['hour']))
+            :gsub("%%P", h.twelve_hour(date.hour)['sign'])
+            :gsub("%%N", h.two_digit(date.min))
+            :gsub("%%S", h.two_digit(date.sec))
 
     return filename
 end

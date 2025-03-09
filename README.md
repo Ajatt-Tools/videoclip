@@ -136,7 +136,9 @@ litterbox=yes
 litterbox_expire=72h
 
 # Filename format
-# Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration
+# Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
+#                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
+#                 %P = am/pm %N = minutes, %S = seconds
 # Title will fallback to filename if it's not present
 #filename_template=%n_%s-%e(%d)
 filename_template=%n_%s-%e
