@@ -88,6 +88,10 @@ this.twelve_hour = function(num)
   return { sign = sign, hour = hour }
 end
 
+this.expand_path = function (str)
+    return mp.command_native({"expand-path", str})
+end
+
 this.human_readable_time = function(seconds)
     if type(seconds) ~= 'number' or seconds < 0 then
         return 'empty'

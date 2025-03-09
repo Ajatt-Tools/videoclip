@@ -81,7 +81,7 @@ function this.append_embed_subs_args(args)
 end
 
 this.mk_out_path_video = function(clip_filename_noext)
-    return utils.join_path(this.config.video_folder_path, clip_filename_noext .. this.config.video_extension)
+    return utils.join_path(h.expand_path(this.config.video_folder_path), clip_filename_noext .. this.config.video_extension)
 end
 
 this.mkargs_video = function(out_clip_path)
@@ -132,7 +132,7 @@ this.mkargs_video = function(out_clip_path)
 end
 
 this.mk_out_path_audio = function(clip_filename_noext)
-    return utils.join_path(this.config.audio_folder_path, clip_filename_noext .. this.config.audio_extension)
+    return utils.join_path(h.expand_path(this.config.audio_folder_path), clip_filename_noext .. this.config.audio_extension)
 end
 
 this.mkargs_audio = function(out_clip_path)
