@@ -61,7 +61,7 @@ local config = {
     litterbox_expire = '72h', -- 1h, 12h, 24h, 72h
     sub_font = 'Noto Sans CJK JP',
     -- Filename format
-    -- Available tags: %n = name, %s = start, %e = end, %d = duration
+    -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration
     filename_template='%n_%s-%e',
 }
 
