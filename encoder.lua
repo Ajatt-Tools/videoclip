@@ -15,32 +15,37 @@ local function toms(timestamp)
     return string.format("%.3f", timestamp)
 end
 
-local function construct_output_filename_noext()
-    local filename = mp.get_property("filename") -- filename without path
-    local title = mp.get_property("media-title") -- if the video doesn't have a title, it will fallback to filename
-
+local function clean_filename(filename)
     filename = h.remove_extension(filename)
-
     if this.config.clean_filename then
         filename = h.remove_text_in_brackets(filename)
         filename = h.remove_special_characters(filename)
         -- remove_text_in_brackets might leave spaces at the start or the end, so trim those
         filename = h.strip(filename)
     end
+    return filename
+end
+
+local function construct_output_filename_noext()
+    local filename = mp.get_property("filename") -- filename without path
+    local title = mp.get_property("media-title") -- if the video doesn't have a title, it will fallback to filename
 
     -- Apply the same operation when the video doesn't have a title
     -- thus it will be the same as filename
-    if title == mp.get_property("filename") then
-      title = filename
+    if title == filename then
+        filename = clean_filename(filename)
+        title = filename
+    else
+        filename = clean_filename(filename)
     end
 
     -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration
     filename = this.config.filename_template
-            :gsub("%%n", filename)
-            :gsub("%%t", title)
-            :gsub("%%s", h.human_readable_time(this.timings['start']))
-            :gsub("%%e", h.human_readable_time(this.timings['end']))
-            :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
+                   :gsub("%%n", filename)
+                   :gsub("%%t", title)
+                   :gsub("%%s", h.human_readable_time(this.timings['start']))
+                   :gsub("%%e", h.human_readable_time(this.timings['end']))
+                   :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
 
     return filename
 end
@@ -166,7 +171,7 @@ this.create_clip = function(clip_type, on_complete)
         end
     end)()
 
-    print("The following args will be executed:", table.concat(h.quote_if_necessary(args), " ") )
+    print("The following args will be executed:", table.concat(h.quote_if_necessary(args), " "))
 
     local output_dir_path = utils.split_path(output_file_path)
     local location_info = utils.file_info(output_dir_path)
