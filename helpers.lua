@@ -14,11 +14,11 @@ this.is_wayland = function()
 end
 
 this.is_win = function()
-    return mp.get_property('options/vo-mmcss-profile') ~= nil
+    return mp.get_property("platform") == "windows"
 end
 
 this.is_mac = function()
-    return mp.get_property('options/macos-force-dedicated-gpu') ~= nil
+    return mp.get_property("platform") == "darwin"
 end
 
 this.notify = function(message, level, duration)
