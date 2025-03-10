@@ -60,6 +60,7 @@ local config = {
     -- Determines expire time of files uploaded to litterbox
     litterbox_expire = '72h', -- 1h, 12h, 24h, 72h
     sub_font = 'Noto Sans CJK JP',
+    enable_welcome = true,
     -- Filename format
     -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
     --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
@@ -473,4 +474,4 @@ end
 validate_config()
 encoder.init(config, main_menu.timings)
 mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
-mp.msg.warn("Press 'c' to open the videoclip menu.")
+if config.enable_welcome then mp.msg.warn("Press 'c' to open the videoclip menu.") end
