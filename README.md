@@ -135,6 +135,9 @@ litterbox=yes
 # Available values: 1h, 12h, 24h, 72h
 litterbox_expire=72h
 
+# Enable help messages on console
+help_msg=yes
+
 # Filename format
 # Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
 #                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
