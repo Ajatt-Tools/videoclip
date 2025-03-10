@@ -71,6 +71,23 @@ this.strip = function(str)
     return str:gsub("^%s*(.-)%s*$", "%1")
 end
 
+this.two_digit = function(num)
+    return string.format("%02d", num)
+end
+
+this.twelve_hour = function(num)
+  local sign = "pm"
+  local hour = num
+
+  if num > 12 then
+      hour = hour - 12
+  else
+      sign = "am"
+  end
+
+  return { sign = sign, hour = hour }
+end
+
 this.expand_path = function (str)
     return mp.command_native({"expand-path", str})
 end
