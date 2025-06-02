@@ -119,7 +119,8 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--sub-delay=', mp.get_property("sub-delay") },
         table.concat { '--sub-visibility=', mp.get_property("sub-visibility") },
         table.concat { '--secondary-sub-visibility=', mp.get_property("secondary-sub-visibility") },
-        table.concat { '--sub-back-color=', mp.get_property("sub-back-color") }
+        table.concat { '--sub-back-color=', mp.get_property("sub-back-color") },
+        table.concat { '--sub-border-style=', mp.get_property("sub-border-style") },
     }
 
     if this.config.video_fps ~= 'auto' then
