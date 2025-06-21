@@ -26,7 +26,12 @@ local function clean_filename(filename)
     return filename
 end
 
+local function clean_forbidden_characters(title)
+    return title:gsub('[<>:"/\\|%?%*]+', '.')
+end
+
 local function construct_output_filename_noext()
+
     local filename = mp.get_property("filename") -- filename without path
     local title = mp.get_property("media-title") -- if the video doesn't have a title, it will fallback to filename
     local date = os.date("*t") -- get current date and time as table
@@ -38,6 +43,7 @@ local function construct_output_filename_noext()
         title = filename
     else
         filename = clean_filename(filename)
+        title = clean_forbidden_characters(title)
     end
 
     -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
