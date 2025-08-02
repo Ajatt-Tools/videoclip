@@ -65,6 +65,8 @@ local config = {
     --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
     --                 %P = am/pm %N = minutes, %S = seconds
     filename_template='%n_%s-%e',
+    cache_path = '/temp/videoclip/',
+    use_cache = false
 }
 
 mpopt.read_options(config, NAME)
@@ -299,6 +301,7 @@ pref_menu.keybindings = {
     { key = 'r', fn = function() pref_menu:cycle_resolutions() end },
     { key = 'b', fn = function() pref_menu:cycle_audio_bitrates() end },
     { key = 'e', fn = function() pref_menu:toggle_embed_subtitles() end },
+    { key = 'd', fn = function() pref_menu:toggle_use_cache() end },
     { key = 'x', fn = function() pref_menu:toggle_catbox() end },
     { key = 'z', fn = function() pref_menu:cycle_litterbox_expiration() end },
     { key = 's', fn = function() pref_menu:save() end },
@@ -398,6 +401,11 @@ function pref_menu:toggle_catbox()
     self:update()
 end
 
+function pref_menu:toggle_use_cache()
+    config['use_cache'] = not config['use_cache']
+    self:update()
+end
+
 function pref_menu:cycle_litterbox_expiration()
     if not config['litterbox'] then
         return
@@ -431,6 +439,10 @@ function pref_menu:update()
     else
         osd:tab():color("b0b0b0"):text('x: Litterbox expires after: '):append("N/A"):newline()
     end
+    osd:submenu('Use internal cache (on streams)'):newline()
+    osd:tab():item('d: Use cache: '):append(config.use_cache):newline()
+    osd:tab():append(
+        'There are no guardrails against clipping beyond cached time, so it is recommended to increase cache'):newline()
     osd:submenu('Save'):newline()
     osd:tab():item('s: Save preferences'):newline()
     self:overlay_draw(osd:get_text())

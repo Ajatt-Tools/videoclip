@@ -8,6 +8,7 @@ Encoder provides interface for creating audio/video clips.
 local mp = require('mp')
 local h = require('helpers')
 local utils = require('mp.utils')
+local io = require('io')
 local this = {}
 
 local function toms(timestamp)
@@ -29,7 +30,7 @@ end
 local function clean_forbidden_characters(title)
     return title:gsub('[<>:"/\\|%?%*]+', '.')
 end
-
+local cached_file = nil
 local function construct_output_filename_noext()
 
     local filename = mp.get_property("filename") -- filename without path
@@ -50,19 +51,19 @@ local function construct_output_filename_noext()
     --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
     --                 %P = am/pm %N = minutes, %S = seconds
     filename = this.config.filename_template
-            :gsub("%%n", filename)
-            :gsub("%%t", title)
-            :gsub("%%s", h.human_readable_time(this.timings['start']))
-            :gsub("%%e", h.human_readable_time(this.timings['end']))
-            :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
-            :gsub("%%Y", date.year)
-            :gsub("%%M", h.two_digit(date.month))
-            :gsub("%%D", h.two_digit(date.day))
-            :gsub("%%H", h.two_digit(date.hour))
-            :gsub("%%I", h.two_digit(h.twelve_hour(date.hour)['hour']))
-            :gsub("%%P", h.twelve_hour(date.hour)['sign'])
-            :gsub("%%N", h.two_digit(date.min))
-            :gsub("%%S", h.two_digit(date.sec))
+        :gsub("%%n", filename)
+        :gsub("%%t", title)
+        :gsub("%%s", h.human_readable_time(this.timings['start']))
+        :gsub("%%e", h.human_readable_time(this.timings['end']))
+        :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
+        :gsub("%%Y", date.year)
+        :gsub("%%M", h.two_digit(date.month))
+        :gsub("%%D", h.two_digit(date.day))
+        :gsub("%%H", h.two_digit(date.hour))
+        :gsub("%%I", h.two_digit(h.twelve_hour(date.hour)['hour']))
+        :gsub("%%P", h.twelve_hour(date.hour)['sign'])
+        :gsub("%%N", h.two_digit(date.min))
+        :gsub("%%S", h.two_digit(date.sec))
 
     return filename
 end
@@ -86,6 +87,33 @@ function this.append_embed_subs_args(args)
     return args
 end
 
+function this.dump_cache()
+    local format = mp.get_property('file-format')
+    local _, _, ext = string.find(format, '(%w+)')
+    cached_file = utils.join_path(h.expand_path(this.config.cache_path), "cached." .. ext)
+
+    -- platform-agnostic create path (bcs dump-cache can't create subdirs)
+    local file = io.open(cached_file, 'w')
+    io.close(file)
+
+    return mp.commandv("dump-cache", this.timings['start'], this.timings['end'] + 1, cached_file)
+end
+
+function this.append_src_args(args)
+    if this.config.use_cache and mp.get_property('demuxer-via-network') == 'yes' and this.dump_cache() then
+        args[#args + 1] = cached_file
+        args[#args + 1] = table.concat { '--start=', toms(0) }
+        args[#args + 1] = table.concat { '--end=', toms(this.timings['end'] - this.timings['start']) }
+        return args
+    end
+
+    args[#args + 1] = mp.get_property('path')
+    args[#args + 1] = table.concat { '--start=', toms(this.timings['start']) }
+    args[#args + 1] = table.concat { '--end=', toms(this.timings['end']) }
+    args[#args + 1] = table.concat { '--sub-delay=', mp.get_property("sub-delay") }
+    return args
+end
+
 this.mk_out_path_video = function(clip_filename_noext)
     return utils.join_path(h.expand_path(this.config.video_folder_path), clip_filename_noext .. this.config.video_extension)
 end
@@ -93,7 +121,6 @@ end
 this.mkargs_video = function(out_clip_path)
     local args = {
         this.player,
-        mp.get_property('path'),
         '--loop-file=no',
         '--keep-open=no',
         '--no-ocopy-metadata',
@@ -108,8 +135,6 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--sub-font=', this.config.sub_font },
         table.concat { '--ovc=', this.config.video_codec },
         table.concat { '--oac=', this.config.audio_codec },
-        table.concat { '--start=', toms(this.timings['start']) },
-        table.concat { '--end=', toms(this.timings['end']) },
         table.concat { '--aid=', mp.get_property("aid") }, -- track number
         table.concat { '--mute=', mp.get_property("mute") },
         table.concat { '--volume=', mp.get_property('volume') },
@@ -122,18 +147,17 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--o=', out_clip_path },
         table.concat { '--sid=', mp.get_property("sid") },
         table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
-        table.concat { '--sub-delay=', mp.get_property("sub-delay") },
         table.concat { '--sub-visibility=', mp.get_property("sub-visibility") },
         table.concat { '--secondary-sub-visibility=', mp.get_property("secondary-sub-visibility") },
         table.concat { '--sub-back-color=', mp.get_property("sub-back-color") },
         table.concat { '--sub-border-style=', mp.get_property("sub-border-style") },
     }
-
     if this.config.video_fps ~= 'auto' then
         table.insert(args, #args, table.concat { '--vf-add=fps=', this.config.video_fps })
     end
 
     args = this.append_embed_subs_args(args)
+    args = this.append_src_args(args)
 
     return args
 end
@@ -143,9 +167,8 @@ this.mk_out_path_audio = function(clip_filename_noext)
 end
 
 this.mkargs_audio = function(out_clip_path)
-    return {
+    local args = {
         this.player,
-        mp.get_property('path'),
         '--loop-file=no',
         '--keep-open=no',
         '--no-ocopy-metadata',
@@ -164,6 +187,9 @@ this.mkargs_audio = function(out_clip_path)
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
         table.concat { '--o=', out_clip_path }
     }
+
+    args = this.append_src_args(args)
+    return args
 end
 
 this.create_clip = function(clip_type, on_complete)
@@ -199,6 +225,8 @@ this.create_clip = function(clip_type, on_complete)
     end
 
     local process_result = function(_, ret, _)
+        mp.commandv('run', 'rm', cached_file)
+        cached_file = nil
         if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
             h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
         else
