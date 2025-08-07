@@ -116,7 +116,7 @@ end
 this.quote_if_necessary = function(args)
     local ret = {}
     for _, v in ipairs(args) do
-        if v:find(" ") then
+        if v:find(" ", 1, true) or v:find("[", 1, true) then
             table.insert(ret, (v:find("'") and string.format('"%s"', v) or string.format("'%s'", v)))
         else
             table.insert(ret, v)
