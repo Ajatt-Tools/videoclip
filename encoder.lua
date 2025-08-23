@@ -26,10 +26,6 @@ local function clean_filename(filename)
     return filename
 end
 
-local function clean_forbidden_characters(title)
-    return title:gsub('[<>:"/\\|%?%*]+', '.')
-end
-
 local function construct_output_filename_noext()
 
     local filename = mp.get_property("filename") -- filename without path
@@ -43,15 +39,15 @@ local function construct_output_filename_noext()
         title = filename
     else
         filename = clean_filename(filename)
-        title = clean_forbidden_characters(title)
+        title = h.clean_forbidden_characters(title)
     end
 
     -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
     --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
     --                 %P = am/pm %N = minutes, %S = seconds
     filename = this.config.filename_template
-            :gsub("%%n", filename)
-            :gsub("%%t", title)
+            :gsub("%%n", h.truncate_utf8_bytes(filename, 200))
+            :gsub("%%t", h.truncate_utf8_bytes(title, 200))
             :gsub("%%s", h.human_readable_time(this.timings['start']))
             :gsub("%%e", h.human_readable_time(this.timings['end']))
             :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
