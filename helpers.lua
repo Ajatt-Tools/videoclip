@@ -147,13 +147,13 @@ this.truncate_utf8_bytes = function(s, max_bytes)
         return s
     end
     local i = 1
-    local bytes = 0
-    local last_ok = 0
+    local n = #s
 
-    while i <= #s do
+    while i <= n do
         local b = s:byte(i)
         local char_len = 1
-        if b >= 0x00 and b <= 0x7F then
+
+        if b <= 0x7F then
             char_len = 1
         elseif b >= 0xC2 and b <= 0xDF then
             char_len = 2
@@ -162,23 +162,20 @@ this.truncate_utf8_bytes = function(s, max_bytes)
         elseif b >= 0xF0 and b <= 0xF4 then
             char_len = 4
         else
-            -- invalid/continuation byte at start
-            char_len = 1
+            break -- invalid start byte: stop before it
         end
 
-        if bytes + char_len > max_bytes then
+        if i-1 + char_len > max_bytes then
             break
         end
 
-        bytes = bytes + char_len
-        last_ok = i + char_len - 1
         i = i + char_len
     end
 
-    if last_ok == 0 then
-        return "new file"
+    if i <= 1 then
+        return "new_file"
     end
-    return s:sub(1, last_ok)
+    return s:sub(1, i-1)
 end
 
 return this
