@@ -143,14 +143,15 @@ this.clean_forbidden_characters = function(title)
 end
 
 this.truncate_utf8_bytes = function(s, max_bytes)
-    if #s <= max_bytes then
+    local size = #s
+    local idx = 1
+
+    if size <= max_bytes then
         return s
     end
-    local i = 1
-    local n = #s
 
-    while i <= n do
-        local b = s:byte(i)
+    while idx <= size do
+        local b = s:byte(idx)
         local char_len = 1
 
         if b <= 0x7F then
@@ -162,20 +163,20 @@ this.truncate_utf8_bytes = function(s, max_bytes)
         elseif b >= 0xF0 and b <= 0xF4 then
             char_len = 4
         else
-            break -- invalid start byte: stop before it
-        end
-
-        if i-1 + char_len > max_bytes then
             break
         end
 
-        i = i + char_len
+        if idx-1 + char_len > max_bytes then
+            break
+        end
+
+        idx = idx + char_len
     end
 
-    if i <= 1 then
+    if idx <= 1 then
         return "new_file"
     end
-    return s:sub(1, i-1)
+    return s:sub(1, idx-1)
 end
 
 return this
