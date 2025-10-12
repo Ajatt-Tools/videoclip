@@ -31,8 +31,20 @@ this.platform = (
                 or h.is_mac() and this.Platform.macos
                 or this.Platform.gnu_linux
 )
-this.default_video_folder = h.query_xdg_user_dir("VIDEOS") or get_fallback_video_dir()
-this.default_audio_folder = h.query_xdg_user_dir("MUSIC") or get_fallback_music_dir()
+this.default_video_folder = (function()
+    if this.platform == this.Platform.gnu_linux then
+        return h.query_xdg_user_dir("VIDEOS") or get_fallback_video_dir()
+    else
+        return get_fallback_video_dir()
+    end
+end)()
+this.default_audio_folder = (function()
+    if this.platform == this.Platform.gnu_linux then
+        return h.query_xdg_user_dir("MUSIC") or get_fallback_music_dir()
+    else
+        return get_fallback_music_dir()
+    end
+end)()
 this.curl_exe = (this.platform == this.Platform.windows and 'curl.exe' or 'curl')
 this.open_utility = (
         this.platform == this.Platform.windows and 'explorer.exe'
