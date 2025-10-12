@@ -153,6 +153,9 @@ this.truncate_utf8_bytes = function(s, max_bytes)
     while idx <= size do
         local b = s:byte(idx)
         local char_len = 1
+        if not b then
+            break
+        end
 
         if b <= 0x7F then
             char_len = 1
