@@ -135,6 +135,13 @@ litterbox=yes
 # Available values: 1h, 12h, 24h, 72h
 litterbox_expire=72h
 
+# Custom upload command
+# Use %f as placeholder for the file path
+# Example for custom CDN:
+# custom_upload_command=curl -X POST -F 'file=@%f' https://example.com
+custom_upload=no
+custom_upload_command=
+
 # Filename format
 # Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
 #                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),

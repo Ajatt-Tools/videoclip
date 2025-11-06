@@ -60,6 +60,11 @@ local config = {
     -- Determines expire time of files uploaded to litterbox
     litterbox_expire = '72h', -- 1h, 12h, 24h, 72h
     sub_font = 'Noto Sans CJK JP',
+
+    -- Custom upload command. %f will be replaced with the file path.
+    -- Example: curl -X POST -F 'file=@%f' https://example.com
+    custom_upload = false,
+    custom_upload_command = '',
     -- Filename format
     -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
     --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
@@ -165,6 +170,37 @@ local function upload_to_catbox(outfile)
     p.copy_or_open_url(r.stdout)
 end
 
+local function upload_to_custom(outfile)
+    h.notify("Upload to custom destination", "info", 9999)
+
+    -- Replace %f with the file path
+    local command = config.custom_upload_command:gsub('%%f', "'" .. outfile .. "'")
+
+    -- Execute the command through the shell
+    local shell = h.is_win() and 'cmd.exe' or 'sh'
+    local shell_arg = h.is_win() and '/C' or '-c'
+    local r = h.subprocess({ shell, shell_arg, command })
+
+    if r.status ~= 0 then
+        h.notify_error("Error: Upload failed with exit code " .. r.status, "error", 2)
+        mp.msg.error("Upload stderr: " .. (r.stderr or ""))
+        return
+    end
+
+    -- Assumes the command outputs the URL to stdout
+    mp.msg.info("Upload URL: " .. r.stdout)
+    local url = h.strip(r.stdout)
+    p.copy_or_open_url(url)
+end
+
+local function upload_video(outfile)
+    if config.custom_upload and config.custom_upload_command ~= '' then
+        upload_to_custom(outfile)
+    else
+        upload_to_catbox(outfile)
+    end
+end
+
 ------------------------------------------------------------
 -- Menu interface
 
@@ -227,8 +263,8 @@ main_menu.keybindings = {
     { key = 'c', fn = function() main_menu:create_clip('video') end },
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() main_menu:create_clip('audio') end },
-    { key = 'x', fn = function() main_menu:create_clip('video', upload_to_catbox) end },
-    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.create_clip, 'video', upload_to_catbox) end },
+    { key = 'x', fn = function() main_menu:create_clip('video', upload_video) end },
+    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.create_clip, 'video', upload_video) end },
     { key = 'p', fn = function() pref_menu:open() end },
     { key = 'o', fn = function() p.open('https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
@@ -273,7 +309,17 @@ function main_menu:update()
     osd:submenu('Create clip '):italics('(+shift to force fullHD preset)'):newline()
     osd:tab():item('c: '):append('video clip'):newline()
     osd:tab():item('a: '):append('audio clip'):newline()
-    osd:tab():item('x: '):append('video clip to ' .. (config.litterbox and 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')' or 'catbox.moe')):newline()
+
+    local upload_dest
+    if config.custom_upload and config.custom_upload_command ~= '' then
+        upload_dest = 'custom upload'
+    elseif config.litterbox then
+        upload_dest = 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')'
+    else
+        upload_dest = 'catbox.moe'
+    end
+    osd:tab():item('x: '):append('video clip to ' .. upload_dest):newline()
+
     osd:submenu('Options '):newline()
     osd:tab():item('p: '):append('Open preferences'):newline()
     osd:tab():item('o: '):append('Open streamable.com'):newline()
