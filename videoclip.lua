@@ -174,7 +174,7 @@ local function upload_to_custom(outfile)
     h.notify("Upload to custom destination", "info", 9999)
 
     -- Replace %f with the file path
-    local command = config.custom_upload_command:gsub('%%f', "'" .. outfile .. "'")
+    local command = config.custom_upload_command:gsub('%%f', outfile)
 
     -- Execute the command through the shell
     local shell = h.is_win() and 'cmd.exe' or 'sh'
