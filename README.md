@@ -137,8 +137,8 @@ litterbox_expire=72h
 
 # Custom upload command
 # Use %f as placeholder for the file path
-# Example for custom CDN:
-# custom_upload_command=curl -X POST -F 'file=@%f' https://example.com
+# Example for 0x0.st:
+# custom_upload_command=curl -F'file=@%f' https://0x0.st
 custom_upload=no
 custom_upload_command=
 

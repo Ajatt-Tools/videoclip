@@ -62,7 +62,7 @@ local config = {
     sub_font = 'Noto Sans CJK JP',
 
     -- Custom upload command. %f will be replaced with the file path.
-    -- Example: curl -X POST -F 'file=@%f' https://example.com
+    -- Example for 0x0.st: curl -F'file=@%f' https://0x0.st
     custom_upload = false,
     custom_upload_command = '',
     -- Filename format
