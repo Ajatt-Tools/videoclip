@@ -201,6 +201,19 @@ local function upload_video(outfile)
     end
 end
 
+local function fmt_upload_dest()
+    local upload_dest
+    if config.custom_upload and config.custom_upload_command ~= '' then
+        upload_dest = 'custom upload'
+    elseif config.litterbox then
+        upload_dest = 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')'
+    else
+        upload_dest = 'catbox.moe'
+    end
+
+    return upload_dest
+end
+
 ------------------------------------------------------------
 -- Menu interface
 
@@ -309,16 +322,7 @@ function main_menu:update()
     osd:submenu('Create clip '):italics('(+shift to force fullHD preset)'):newline()
     osd:tab():item('c: '):append('video clip'):newline()
     osd:tab():item('a: '):append('audio clip'):newline()
-
-    local upload_dest
-    if config.custom_upload and config.custom_upload_command ~= '' then
-        upload_dest = 'custom upload'
-    elseif config.litterbox then
-        upload_dest = 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')'
-    else
-        upload_dest = 'catbox.moe'
-    end
-    osd:tab():item('x: '):append('video clip to ' .. upload_dest):newline()
+    osd:tab():item('x: '):append('video clip to ' .. fmt_upload_dest()):newline()
 
     osd:submenu('Options '):newline()
     osd:tab():item('p: '):append('Open preferences'):newline()
