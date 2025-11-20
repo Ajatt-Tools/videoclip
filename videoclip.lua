@@ -63,8 +63,8 @@ local config = {
 
     -- Custom upload command. %f will be replaced with the file path.
     -- Example for 0x0.st: curl -F'file=@%f' https://0x0.st
-    custom_upload = false,
     custom_upload_command = '',
+
     -- Filename format
     -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
     --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
@@ -223,7 +223,7 @@ local function upload_to_custom(outfile)
 end
 
 local function upload_video(outfile)
-    if config.custom_upload and config.custom_upload_command ~= '' then
+    if config.custom_upload_command ~= '' then
         upload_to_custom(outfile)
     else
         upload_to_catbox(outfile)
@@ -232,7 +232,7 @@ end
 
 local function fmt_upload_dest()
     local upload_dest
-    if config.custom_upload and config.custom_upload_command ~= '' then
+    if config.custom_upload_command ~= '' then
         upload_dest = 'custom upload'
     elseif config.litterbox then
         upload_dest = 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')'
