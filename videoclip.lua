@@ -60,6 +60,11 @@ local config = {
     -- Determines expire time of files uploaded to litterbox
     litterbox_expire = '72h', -- 1h, 12h, 24h, 72h
     sub_font = 'Noto Sans CJK JP',
+
+    -- Custom upload command. %f will be replaced with the file path.
+    -- Example for 0x0.st: curl -F'file=@%f' https://0x0.st
+    custom_upload_command = '',
+
     -- Filename format
     -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
     --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
@@ -165,6 +170,79 @@ local function upload_to_catbox(outfile)
     p.copy_or_open_url(r.stdout)
 end
 
+local function parse_command_args(cmd_str)
+    local args = {}
+
+    local buffer = ""
+    local in_quote = false
+    for i = 1, #cmd_str do
+        local c = cmd_str:sub(i, i)
+
+        if c == '"' then
+            in_quote = not in_quote
+        elseif c:match("%s") and not in_quote then
+            if buffer ~= "" then
+                table.insert(args, buffer)
+                buffer = ""
+            end
+        else
+            buffer = buffer .. c
+        end
+    end
+
+    if buffer ~= "" then
+        table.insert(args, buffer)
+    end
+
+    return args
+end
+
+local function upload_to_custom(outfile)
+    h.notify("Upload to custom destination", "info", 9999)
+
+    local raw_args = parse_command_args(config.custom_upload_command)
+    local exec_args = {}
+
+    for _, arg in ipairs(raw_args) do
+        local clean_arg = arg:gsub('%%f', function() return outfile end)
+        table.insert(exec_args, clean_arg)
+    end
+
+    local r = h.subprocess(exec_args)
+
+    if r.status ~= 0 then
+        h.notify_error("Error: Upload failed with exit code " .. r.status, "error", 2)
+        mp.msg.error("Upload stderr: " .. (r.stderr or ""))
+        return
+    end
+
+    -- Assumes the command outputs the URL to stdout
+    mp.msg.info("Upload URL: " .. r.stdout)
+    local url = h.strip(r.stdout)
+    p.copy_or_open_url(url)
+end
+
+local function upload_video(outfile)
+    if config.custom_upload_command ~= '' then
+        upload_to_custom(outfile)
+    else
+        upload_to_catbox(outfile)
+    end
+end
+
+local function fmt_upload_dest()
+    local upload_dest
+    if config.custom_upload_command ~= '' then
+        upload_dest = 'custom upload'
+    elseif config.litterbox then
+        upload_dest = 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')'
+    else
+        upload_dest = 'catbox.moe'
+    end
+
+    return upload_dest
+end
+
 ------------------------------------------------------------
 -- Menu interface
 
@@ -227,8 +305,8 @@ main_menu.keybindings = {
     { key = 'c', fn = function() main_menu:create_clip('video') end },
     { key = 'C', fn = function() force_resolution(1920, -2, encoder.create_clip, 'video') end },
     { key = 'a', fn = function() main_menu:create_clip('audio') end },
-    { key = 'x', fn = function() main_menu:create_clip('video', upload_to_catbox) end },
-    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.create_clip, 'video', upload_to_catbox) end },
+    { key = 'x', fn = function() main_menu:create_clip('video', upload_video) end },
+    { key = 'X', fn = function() force_resolution(1920, -2, main_menu.create_clip, 'video', upload_video) end },
     { key = 'p', fn = function() pref_menu:open() end },
     { key = 'o', fn = function() p.open('https://streamable.com/') end },
     { key = 'ESC', fn = function() main_menu:close() end },
@@ -273,7 +351,8 @@ function main_menu:update()
     osd:submenu('Create clip '):italics('(+shift to force fullHD preset)'):newline()
     osd:tab():item('c: '):append('video clip'):newline()
     osd:tab():item('a: '):append('audio clip'):newline()
-    osd:tab():item('x: '):append('video clip to ' .. (config.litterbox and 'litterbox.catbox.moe (' .. config.litterbox_expire .. ')' or 'catbox.moe')):newline()
+    osd:tab():item('x: '):append('video clip to ' .. fmt_upload_dest()):newline()
+
     osd:submenu('Options '):newline()
     osd:tab():item('p: '):append('Open preferences'):newline()
     osd:tab():item('o: '):append('Open streamable.com'):newline()
