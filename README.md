@@ -135,10 +135,11 @@ litterbox=yes
 # Available values: 1h, 12h, 24h, 72h
 litterbox_expire=72h
 
-# Custom upload command
+# Custom upload command (replaces catbox.moe)
 # Use %f as placeholder for the file path
 # Example for 0x0.st:
 # custom_upload_command=curl -F'file=@%f' https://0x0.st
+# You can also make a bash script and set custom_upload_command to `bash ~/path/to/upload.sh %f` to achieve more customizability.
 custom_upload=no
 custom_upload_command=
 
