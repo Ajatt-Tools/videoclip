@@ -122,8 +122,10 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--sub-visibility=', mp.get_property("sub-visibility") },
         table.concat { '--secondary-sub-visibility=', mp.get_property("secondary-sub-visibility") },
         table.concat { '--sub-back-color=', mp.get_property("sub-back-color") },
-        table.concat { '--sub-border-style=', mp.get_property("sub-border-style") },
     }
+    if mp.get_property("sub-border-style", nil) ~= nil then
+        table.insert(args, #args, table.concat { '--sub-border-style=', mp.get_property("sub-border-style") })
+    end
 
     if this.config.video_fps ~= 'auto' then
         table.insert(args, #args, table.concat { '--vf-add=fps=', this.config.video_fps })
