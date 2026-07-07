@@ -121,6 +121,10 @@ preset=faster
 video_fps=auto
 #video_fps=60
 
+# Convert HDR sources to SDR while clipping. Useful for HDR videos that otherwise export dim or black.
+# Uses BT.2390 tone mapping targeting BT.1886 transfer characteristics and BT.709 color primaries.
+hdr_to_sdr=no
+
 # Audio settings
 # Available formats: opus or aac
 audio_format=opus

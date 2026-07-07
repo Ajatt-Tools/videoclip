@@ -49,6 +49,7 @@ local config = {
     video_width = -2,
     video_height = 480,
     video_fps = 'auto',
+    hdr_to_sdr = false,
     audio_format = 'opus', -- aac, opus
     audio_bitrate = '32k', -- 32k, 64k, 128k, 256k. aac requires higher bitrates.
     font_size = 24,

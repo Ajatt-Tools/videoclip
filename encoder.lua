@@ -10,6 +10,10 @@ local h = require('helpers')
 local utils = require('mp.utils')
 local this = {}
 
+local HDR_TO_SDR_TONE_MAPPING = 'bt.2390'
+local SDR_TRANSFER_CHARACTERISTICS = 'bt.1886'
+local SDR_COLOR_PRIMARIES = 'bt.709'
+
 local function toms(timestamp)
     --- Trim timestamp down to milliseconds.
     return string.format("%.3f", timestamp)
@@ -82,6 +86,26 @@ function this.append_embed_subs_args(args)
     return args
 end
 
+function this.append_video_filter_args(args)
+    if this.config.hdr_to_sdr then
+        table.insert(args, #args, '--hwdec=no')
+        table.insert(args, #args, table.concat { '--tone-mapping=', HDR_TO_SDR_TONE_MAPPING })
+        table.insert(args, #args, table.concat { '--target-trc=', SDR_TRANSFER_CHARACTERISTICS })
+        table.insert(args, #args, table.concat { '--target-prim=', SDR_COLOR_PRIMARIES })
+        table.insert(args, #args, '--vf-add=gpu')
+    end
+
+    table.insert(args, #args, table.concat { '--vf-add=scale=', this.config.video_width, ':', this.config.video_height })
+
+    if this.config.video_fps ~= 'auto' then
+        table.insert(args, #args, table.concat { '--vf-add=fps=', this.config.video_fps })
+    end
+
+    table.insert(args, #args, '--vf-add=format=yuv420p')
+
+    return args
+end
+
 this.mk_out_path_video = function(clip_filename_noext)
     return utils.join_path(h.expand_path(this.config.video_folder_path), clip_filename_noext .. this.config.video_extension)
 end
@@ -98,14 +122,6 @@ this.mkargs_video = function(out_clip_path)
         '--oacopts-add=vbr=on',
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
-
-        '--hwdec=no',
-        '--tone-mapping=bt.2390',
-        '--target-trc=bt.1886',
-        '--target-prim=bt.709',
-        '--vf-add=gpu',
-        '--vf-add=format=yuv420p',
-
         '--sub-font-provider=auto',
         '--embeddedfonts=yes',
         table.concat { '--sub-font=', this.config.sub_font },
@@ -120,7 +136,6 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--oacopts-add=b=', this.config.audio_bitrate },
         table.concat { '--ovcopts-add=crf=', this.config.video_quality },
         table.concat { '--ovcopts-add=preset=', this.config.preset },
-        table.concat { '--vf-add=scale=', this.config.video_width, ':', this.config.video_height },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
         table.concat { '--o=', out_clip_path },
         table.concat { '--sid=', mp.get_property("sid") },
@@ -134,10 +149,7 @@ this.mkargs_video = function(out_clip_path)
         table.insert(args, #args, table.concat { '--sub-border-style=', mp.get_property("sub-border-style") })
     end
 
-    if this.config.video_fps ~= 'auto' then
-        table.insert(args, #args, table.concat { '--vf-add=fps=', this.config.video_fps })
-    end
-
+    args = this.append_video_filter_args(args)
     args = this.append_embed_subs_args(args)
 
     return args
