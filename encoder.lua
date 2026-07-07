@@ -99,12 +99,11 @@ this.mkargs_video = function(out_clip_path)
         '--oacopts-add=application=voip',
         '--oacopts-add=compression_level=10',
 
-        '--hwdec=no', 
+        '--hwdec=no',
         '--tone-mapping=bt.2390',
         '--target-trc=bt.1886',
         '--target-prim=bt.709',
         '--vf-add=gpu',
-        table.concat { '--vf-add=scale=', this.config.video_width, ':', this.config.video_height },
         '--vf-add=format=yuv420p',
 
         '--sub-font-provider=auto',
@@ -121,6 +120,7 @@ this.mkargs_video = function(out_clip_path)
         table.concat { '--oacopts-add=b=', this.config.audio_bitrate },
         table.concat { '--ovcopts-add=crf=', this.config.video_quality },
         table.concat { '--ovcopts-add=preset=', this.config.preset },
+        table.concat { '--vf-add=scale=', this.config.video_width, ':', this.config.video_height },
         table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
         table.concat { '--o=', out_clip_path },
         table.concat { '--sid=', mp.get_property("sid") },
