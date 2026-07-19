@@ -25,11 +25,14 @@ this.notify = function(message, level, duration)
     level = level or 'info'
     duration = duration or 1
     mp.msg[level](message)
+    if level == "error" then
+        message = "{\\c&H7171f8&}" .. message
+    end
     mp.osd_message(ass_start .. "{\\fs12}{\\bord0.75}" .. message, duration)
 end
 
 this.notify_error = function(message, level, duration)
-    this.notify("{\\c&H7171f8&}" .. message, level, duration)
+    this.notify(message, level, duration)
 end
 
 this.subprocess = function(args, stdin)
