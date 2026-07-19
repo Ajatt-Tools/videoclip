@@ -6,7 +6,6 @@ Encoder utilities shared between the mpv and ffmpeg backends.
 ]]
 
 local mp = require('mp')
-local utils = require('mp.utils')
 
 local this = {}
 
