@@ -6,6 +6,7 @@ Various helper functions.
 ]]
 
 local mp = require('mp')
+local utils = require('mp.utils')
 local this = {}
 local ass_start = mp.get_property_osd("osd-ass-cc/0")
 
@@ -143,6 +144,27 @@ end
 
 this.clean_forbidden_characters = function(title)
     return title:gsub('[<>:"/\\|%?%*]+', '.')
+end
+
+this.repr = function(value)
+    --- Return a test-friendly string representation of a value.
+    if type(value) == 'table' then
+        return utils.format_json(value)
+    else
+        return value
+    end
+end
+
+this.equal = function(first, last)
+    --- Test whether two values are equal.
+    return this.repr(first) == this.repr(last)
+end
+
+this.assert_equals = function(actual, expected)
+    --- Raise an error if actual and expected are not equal.
+    if this.equal(actual, expected) == false then
+        error(string.format("TEST FAILED: Expected '%s', got '%s'", this.repr(expected), this.repr(actual)))
+    end
 end
 
 this.truncate_utf8_bytes = function(s, max_bytes)
