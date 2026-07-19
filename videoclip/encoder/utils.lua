@@ -6,6 +6,7 @@ Encoder utilities shared between the mpv and ffmpeg backends.
 ]]
 
 local mp = require('mp')
+local h = require('helpers')
 
 local this = {}
 
@@ -102,6 +103,35 @@ function this.result_to_str(result)
         return (result.stdout or "") .. (result.stderr or "")
     end
     return ""
+end
+
+function this.run_tests()
+    --- Run unit tests for encoder utility functions.
+    h.assert_equals(this.toms(1), "1.000")
+    h.assert_equals(this.toms(1.23456), "1.235")
+
+    h.assert_equals(this.strip_url_suffix("file.txt?x=1"), "file.txt")
+    h.assert_equals(this.strip_url_suffix("file.txt#section"), "file.txt")
+    h.assert_equals(this.strip_url_suffix("file.txt?x=1#section"), "file.txt")
+
+    h.assert_equals(this.source_extension("file.txt?x=1", "mkv"), "txt")
+    h.assert_equals(this.source_extension("file.txt#section", "mkv"), "txt")
+    h.assert_equals(this.source_extension("file.txt?x=1#section", "mkv"), "txt")
+    h.assert_equals(this.source_extension("file", "mkv"), "mkv")
+
+    h.assert_equals(this.current_track_ff_index("audio"), "1")
+    h.assert_equals(this.current_track_ff_index("video"), "0")
+    h.assert_equals(this.ffmpeg_stream_map("audio", "0:a:0?"), "0:1")
+    h.assert_equals(this.ffmpeg_stream_map("video", "0:v:0"), "0:0")
+
+    h.assert_equals(this.audio_codec_to_extension("aac"), ".m4a")
+    h.assert_equals(this.audio_codec_to_extension("opus"), ".opus")
+    h.assert_equals(this.audio_codec_to_extension("mp3"), ".mp3")
+    h.assert_equals(this.audio_codec_to_extension("unknown"), ".mka")
+
+    h.assert_equals(this.result_to_str({ status = 0, stdout = "ok", stderr = "" }), "ok")
+    h.assert_equals(this.result_to_str({ status = 0, stdout = "", stderr = "err" }), "err")
+    h.assert_equals(this.result_to_str({ status = 1, stdout = "bad", stderr = "err" }), "")
 end
 
 return this
