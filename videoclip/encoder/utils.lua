@@ -93,4 +93,16 @@ function this.audio_codec_to_extension(codec)
     return '.mka'
 end
 
+--- Convert a subprocess result to combined stdout and stderr text on success.
+--- Returns an empty string when the command failed.
+--- Examples:
+---    { status = 0, stdout = "ok", stderr = "" } → "ok"
+---    { status = 1, stdout = "", stderr = "err" } → ""
+function this.result_to_str(result)
+    if result and result.status == 0 then
+        return (result.stdout or "") .. (result.stderr or "")
+    end
+    return ""
+end
+
 return this
