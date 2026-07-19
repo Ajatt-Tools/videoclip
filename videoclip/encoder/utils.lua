@@ -11,6 +11,9 @@ local utils = require('mp.utils')
 local this = {}
 
 --- Trim timestamp down to milliseconds.
+--- Examples:
+---    1 → "1.000"
+---    1.23456 → "1.235"
 function this.toms(timestamp)
     return string.format("%.3f", timestamp)
 end
@@ -34,6 +37,9 @@ end
 
 --- Return the ffmpeg stream index of the currently selected track of the given type.
 --- Returns nil when the property is unavailable.
+--- Examples:
+---    current_track_ff_index("audio") → "1"
+---    current_track_ff_index("video") → "0"
 function this.current_track_ff_index(track_type)
     local value = mp.get_property_native(string.format("current-tracks/%s/ff-index", track_type))
     if value == nil then
@@ -44,6 +50,9 @@ end
 
 --- Build a `-map` argument for the selected track of the given type.
 --- Uses the fallback (e.g. "0:v:0") when the selected track is unknown.
+--- Examples:
+---    ffmpeg_stream_map("audio", "0:a:0?") → "0:1"
+---    ffmpeg_stream_map("video", "0:v:0") → "0:v:0"
 function this.ffmpeg_stream_map(track_type, fallback)
     local ff_index = this.current_track_ff_index(track_type)
     if ff_index ~= nil then
@@ -53,6 +62,10 @@ function this.ffmpeg_stream_map(track_type, fallback)
 end
 
 --- Map a codec name reported by mpv to a sensible audio container extension.
+--- Examples:
+---    "aac" → ".m4a"
+---    "opus" → ".opus"
+---    "unknown" → ".mka"
 function this.audio_codec_to_extension(codec)
     codec = (codec or ''):lower()
     if codec == 'aac' then
