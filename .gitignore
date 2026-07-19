@@ -1,2 +1,5 @@
 .idea
 .vscode
+
+/*.md
+!/README.md
