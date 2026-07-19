@@ -18,16 +18,23 @@ function this.toms(timestamp)
     return string.format("%.3f", timestamp)
 end
 
---- Extract the file extension from a source path.
---- Returns default_ext if no extension can be determined.
+--- Strip URL query and fragment suffixes from a source path.
 --- Examples:
 ---    "file.txt?x=1" → "file.txt"
 ---    "file.txt#section" → "file.txt"
 ---    "file.txt?x=1#section" → "file.txt"
+function this.strip_url_suffix(src_path)
+    return (src_path or ''):gsub('[?#].*$', '')
+end
+
+--- Extract the file extension from a source path after stripping URL suffixes.
+--- Returns default_ext if no extension can be determined.
+--- Examples:
+---    "file.txt?x=1" → "txt"
+---    "file.txt#section" → "txt"
+---    "file.txt?x=1#section" → "txt"
 function this.source_extension(src_path, default_ext)
-    src_path = src_path or ''
-    -- Strip query strings and fragments that appear in URLs.
-    local cleaned = src_path:gsub('[?#].*$', '')
+    local cleaned = this.strip_url_suffix(src_path)
     local ext = cleaned:match('%.(%w+)$')
     if ext and #ext > 0 and #ext <= 5 then
         return string.lower(ext)
