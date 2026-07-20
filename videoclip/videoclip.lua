@@ -17,25 +17,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ]]
 
-local NAME = 'videoclip'
 local mp = require('mp')
-local mpopt = require('mp.options')
-local utils = require('mp.utils')
 local OSD = require('osd_styler')
 local p = require('platform')
 local h = require('helpers')
-local encoder = require('encoder')
+local encoder = require('encoder.encoder')
 local Timings = require('timings_mgr')
-local defaults = require("config.defaults")
+local cfg_mgr = require("config.config")
 
 ------------------------------------------------------------
 -- System-dependent variables
 
 -- Options can be changed in the config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
-local config = defaults.get_default()
-
-mpopt.read_options(config, NAME)
+local config = cfg_mgr.read_config_file()
 local main_menu
 local pref_menu
 
@@ -556,33 +551,11 @@ function pref_menu:update()
 end
 
 function pref_menu:save()
-    local function lua_to_mpv(config_value)
-        if type(config_value) == 'boolean' then
-            return config_value and 'yes' or 'no'
-        else
-            return config_value
-        end
-    end
-    local ignore_list = {
-        video_extension = true,
-        audio_extension = true,
-        video_codec = true,
-        audio_codec = true,
-    }
-    local mpv_dirpath = string.gsub(mp.get_script_directory(), "scripts[\\/][^\\/]+", "")
-    local config_filepath = utils.join_path(utils.join_path(mpv_dirpath, "script-opts"), string.format('%s.conf', NAME))
-    local handle = io.open(config_filepath, 'w')
-    if handle ~= nil then
-        handle:write(string.format("# Written by %s on %s.\n", NAME, os.date()))
-        for key, value in pairs(config) do
-            if ignore_list[key] == nil then
-                handle:write(string.format('%s=%s\n', key, lua_to_mpv(value)))
-            end
-        end
-        handle:close()
-        h.notify("Settings saved.", "info", 2)
+    local result, error = cfg_mgr.save_config_file(config)
+    if h.is_empty(error) then
+        h.notify(result, "info", 4)
     else
-        h.notify_error(string.format("Couldn't open %s.", config_filepath), "error", 4)
+        h.notify(error, "error", 4)
     end
 end
 
