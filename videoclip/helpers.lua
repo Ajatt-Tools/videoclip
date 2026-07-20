@@ -213,4 +213,28 @@ this.truncate_utf8_bytes = function(s, max_bytes)
     return s:sub(1, idx - 1)
 end
 
+this.run_tests = function()
+    --- Run unit tests for helper functions.
+    this.assert_equals(this.is_empty(nil), true)
+    this.assert_equals(this.is_empty(''), true)
+    this.assert_equals(this.is_empty({}), true)
+    this.assert_equals(this.is_empty('x'), false)
+
+    this.assert_equals(this.remove_extension('video.mkv'), 'video')
+    this.assert_equals(this.remove_text_in_brackets('a [b] c'), 'a  c')
+    this.assert_equals(this.remove_special_characters('a-b_c!'), 'a b c')
+    this.assert_equals(this.strip('  abc  '), 'abc')
+    this.assert_equals(this.two_digit(7), '07')
+    this.assert_equals(this.twelve_hour(13).hour, 1)
+    this.assert_equals(this.twelve_hour(13).sign, 'pm')
+
+    this.assert_equals(this.human_readable_time(-1), 'empty')
+    this.assert_equals(this.human_readable_time(61.234), '01m01s234ms')
+    this.assert_equals(this.clean_forbidden_characters('a:b?c'), 'a.b.c')
+    this.assert_equals(this.repr({ a = 1 }), utils.format_json({ a = 1 }))
+    this.assert_equals(this.repr({ a = 1 }), '{"a":1}')
+    this.assert_equals(this.equal({ a = 1 }, { a = 1 }), true)
+    this.assert_equals(this.truncate_utf8_bytes('abcdef', 3), 'abc')
+end
+
 return this
