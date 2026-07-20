@@ -84,20 +84,20 @@ this.two_digit = function(num)
 end
 
 this.twelve_hour = function(num)
-  local sign = "pm"
-  local hour = num
+    local sign = "pm"
+    local hour = num
 
-  if num > 12 then
-      hour = hour - 12
-  else
-      sign = "am"
-  end
+    if num > 12 then
+        hour = hour - 12
+    else
+        sign = "am"
+    end
 
-  return { sign = sign, hour = hour }
+    return { sign = sign, hour = hour }
 end
 
-this.expand_path = function (str)
-    return mp.command_native({"expand-path", str})
+this.expand_path = function(str)
+    return mp.command_native({ "expand-path", str })
 end
 
 this.human_readable_time = function(seconds)
@@ -198,7 +198,7 @@ this.truncate_utf8_bytes = function(s, max_bytes)
             break
         end
 
-        if idx-1 + char_len > max_bytes then
+        if idx - 1 + char_len > max_bytes then
             break
         end
 
@@ -208,7 +208,7 @@ this.truncate_utf8_bytes = function(s, max_bytes)
     if idx <= 1 then
         return "new_file"
     end
-    return s:sub(1, idx-1)
+    return s:sub(1, idx - 1)
 end
 
 return this
