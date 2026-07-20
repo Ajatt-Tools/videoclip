@@ -15,11 +15,11 @@ local h = require('helpers')
 local this = {}
 local NAME = 'videoclip'
 
-this.read_config_file = function(profile_name)
+this.read_config_file = function()
     --- Reads the cofig file and returns a new copy of the config dict.
     local config = defaults.get_default()
     mpopt.read_options(config, NAME)
-    msg.info("Read config file: " .. profile_name)
+    msg.info("Read config file: " .. NAME .. ".conf")
     return config
 end
 
