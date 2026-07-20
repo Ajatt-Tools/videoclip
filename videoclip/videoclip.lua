@@ -562,7 +562,21 @@ end
 ------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
-validate_config()
-encoder.init(config, main_menu.timings)
-mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
-mp.msg.warn("Press 'c' to open the videoclip menu.")
+local main = (function()
+    local main_executed = false
+    return function()
+        if main_executed then
+            main_menu.timings:reset()
+            return
+        else
+            main_executed = true
+        end
+
+        validate_config()
+        encoder.init(config, main_menu.timings)
+        mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
+        mp.msg.warn("Press 'c' to open the videoclip menu.")
+    end
+end)()
+
+mp.register_event("file-loaded", main)
