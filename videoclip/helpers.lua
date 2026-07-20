@@ -10,6 +10,8 @@ local utils = require('mp.utils')
 local this = {}
 local ass_start = mp.get_property_osd("osd-ass-cc/0")
 
+this.unpack = unpack or table.unpack
+
 this.is_empty = function(var)
     return var == nil or var == '' or (type(var) == 'table' and next(var) == nil)
 end
