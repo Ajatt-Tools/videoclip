@@ -106,6 +106,11 @@ function this.result_to_str(result)
     return ""
 end
 
+function this.mk_out_path(clip_filename_noext, output_folder_path, file_extension)
+    --- Return the output path for a re-encoded audio/video clip.
+    return utils.join_path(h.expand_path(output_folder_path), clip_filename_noext .. file_extension)
+end
+
 function this.run_tests()
     --- Run unit tests for encoder utility functions.
     h.assert_equals(this.toms(1), "1.000")
