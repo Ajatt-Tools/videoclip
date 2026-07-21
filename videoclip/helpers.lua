@@ -213,6 +213,22 @@ this.truncate_utf8_bytes = function(s, max_bytes)
     return s:sub(1, idx - 1)
 end
 
+function this.partial(callable, ...)
+    local preset = { ... }
+    return function(...)
+        local args = {}
+
+        for i = 1, #preset do
+            args[#args + 1] = preset[i]
+        end
+        for i = 1, select("#", ...) do
+            args[#args + 1] = select(i, ...)
+        end
+
+        return callable(this.unpack(args))
+    end
+end
+
 this.run_tests = function()
     --- Run unit tests for helper functions.
     this.assert_equals(this.is_empty(nil), true)
@@ -235,6 +251,12 @@ this.run_tests = function()
     this.assert_equals(this.repr({ a = 1 }), '{"a":1}')
     this.assert_equals(this.equal({ a = 1 }, { a = 1 }), true)
     this.assert_equals(this.truncate_utf8_bytes('abcdef', 3), 'abc')
+
+    local function greet(greeting, name)
+        return greeting .. ", " .. name
+    end
+
+    this.assert_equals(this.partial(greet, "Hello")("Lua"), "Hello, Lua")
 end
 
 return this
