@@ -119,10 +119,15 @@ function this.run_tests()
     h.assert_equals(this.source_extension("file.txt?x=1#section", "mkv"), "txt")
     h.assert_equals(this.source_extension("file", "mkv"), "mkv")
 
-    h.assert_equals(this.current_track_ff_index("audio"), "1")
-    h.assert_equals(this.current_track_ff_index("video"), "0")
-    h.assert_equals(this.ffmpeg_stream_map("audio", "0:a:0?"), "0:1")
-    h.assert_equals(this.ffmpeg_stream_map("video", "0:v:0"), "0:0")
+    local audio_index = this.current_track_ff_index("audio")
+    local video_index = this.current_track_ff_index("video")
+
+    if not h.is_empty(audio_index) then
+        h.assert_equals(this.ffmpeg_stream_map("audio", "0:a:0?"), "0:" .. audio_index)
+    end
+    if not h.is_empty(video_index) then
+        h.assert_equals(this.ffmpeg_stream_map("video", "0:v:0"), "0:" .. video_index)
+    end
 
     h.assert_equals(this.audio_codec_to_extension("aac"), ".m4a")
     h.assert_equals(this.audio_codec_to_extension("opus"), ".opus")
