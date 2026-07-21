@@ -100,7 +100,7 @@ function this.validate_config(config)
         config.preset = 'faster'
     end
 
-    this.set_encoding_settings()
+    this.set_encoding_settings(config)
 end
 
 return this
