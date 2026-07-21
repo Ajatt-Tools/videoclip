@@ -7,6 +7,7 @@ Encoder utilities shared between the mpv and ffmpeg backends.
 
 local mp = require('mp')
 local h = require('helpers')
+local utils = require('mp.utils')
 
 local this = {}
 
@@ -37,9 +38,9 @@ function this.source_extension(src_path, default_ext)
     local cleaned = this.strip_url_suffix(src_path)
     local ext = cleaned:match('%.(%w+)$')
     if ext and #ext > 0 and #ext <= 5 then
-        return string.lower(ext)
+        return "." .. string.lower(ext)
     end
-    return default_ext
+    return "." .. default_ext
 end
 
 --- Return the ffmpeg stream index of the currently selected track of the given type.
@@ -114,10 +115,10 @@ function this.run_tests()
     h.assert_equals(this.strip_url_suffix("file.txt#section"), "file.txt")
     h.assert_equals(this.strip_url_suffix("file.txt?x=1#section"), "file.txt")
 
-    h.assert_equals(this.source_extension("file.txt?x=1", "mkv"), "txt")
-    h.assert_equals(this.source_extension("file.txt#section", "mkv"), "txt")
-    h.assert_equals(this.source_extension("file.txt?x=1#section", "mkv"), "txt")
-    h.assert_equals(this.source_extension("file", "mkv"), "mkv")
+    h.assert_equals(this.source_extension("file.txt?x=1", "mkv"), ".txt")
+    h.assert_equals(this.source_extension("file.txt#section", "mkv"), ".txt")
+    h.assert_equals(this.source_extension("file.txt?x=1#section", "mkv"), ".txt")
+    h.assert_equals(this.source_extension("file", "mkv"), ".mkv")
 
     local audio_index = this.current_track_ff_index("audio")
     local video_index = this.current_track_ff_index("video")
