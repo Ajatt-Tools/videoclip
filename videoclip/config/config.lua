@@ -10,18 +10,21 @@ local mpopt = require('mp.options')
 local defaults = require("config.defaults")
 local msg = require('mp.msg')
 local utils = require('mp.utils')
-local h = require('helpers')
 
 local this = {}
 local NAME = 'videoclip'
 
-this.read_config_file = function()
-    --- Reads the cofig file and returns a new copy of the config dict.
-    local config = defaults.get_default()
-    mpopt.read_options(config, NAME)
-    msg.info("Read config file: " .. NAME .. ".conf")
-    return config
-end
+local allowed_presets = {
+    ultrafast = true,
+    superfast = true,
+    veryfast = true,
+    faster = true,
+    fast = true,
+    medium = true,
+    slow = true,
+    slower = true,
+    veryslow = true,
+}
 
 local function lua_to_mpv(config_value)
     if type(config_value) == 'boolean' then
@@ -31,7 +34,15 @@ local function lua_to_mpv(config_value)
     end
 end
 
-this.save_config_file = function(config)
+function this.read_config_file()
+    --- Reads the config file and returns a new copy of the config dict.
+    local config = defaults.get_default()
+    mpopt.read_options(config, NAME)
+    msg.info("Read config file: " .. NAME .. ".conf")
+    return config
+end
+
+function this.save_config_file(config)
     local ignore_list = {
         video_extension = true,
         audio_extension = true,
@@ -53,6 +64,43 @@ this.save_config_file = function(config)
     else
         return nil, string.format("Couldn't open %s.", config_filepath)
     end
+end
+
+function this.set_encoding_settings(config)
+    if config.video_format == 'mp4' then
+        config.video_codec = 'libx264'
+        config.video_extension = '.mp4'
+    elseif config.video_format == 'vp9' then
+        config.video_codec = 'libvpx-vp9'
+        config.video_extension = '.webm'
+    else
+        config.video_codec = 'libvpx'
+        config.video_extension = '.webm'
+    end
+
+    if config.audio_format == 'aac' then
+        config.audio_codec = 'aac'
+        config.audio_extension = '.aac'
+    else
+        config.audio_codec = 'libopus'
+        config.audio_extension = '.opus'
+    end
+end
+
+function this.validate_config(config)
+    if not config.audio_bitrate:match('^%d+[kK]$') then
+        config.audio_bitrate = (tonumber(config.audio_bitrate) or 32) .. 'k'
+    end
+
+    if not config.video_bitrate:match('^%d+[kKmM]$') then
+        config.video_bitrate = '1M'
+    end
+
+    if not allowed_presets[config.preset] then
+        config.preset = 'faster'
+    end
+
+    this.set_encoding_settings()
 end
 
 return this

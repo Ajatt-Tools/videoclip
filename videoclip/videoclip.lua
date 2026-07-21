@@ -34,18 +34,6 @@ local config = cfg_mgr.read_config_file()
 local main_menu
 local pref_menu
 
-local allowed_presets = {
-    ultrafast = true,
-    superfast = true,
-    veryfast = true,
-    faster = true,
-    fast = true,
-    medium = true,
-    slow = true,
-    slower = true,
-    veryslow = true,
-}
-
 ------------------------------------------------------------
 -- Utility functions
 
@@ -59,43 +47,6 @@ local function force_resolution(width, height, clip_fn, ...)
     clip_fn(...)
     config.video_width = cached_prefs.video_width
     config.video_height = cached_prefs.video_height
-end
-
-local function set_encoding_settings()
-    if config.video_format == 'mp4' then
-        config.video_codec = 'libx264'
-        config.video_extension = '.mp4'
-    elseif config.video_format == 'vp9' then
-        config.video_codec = 'libvpx-vp9'
-        config.video_extension = '.webm'
-    else
-        config.video_codec = 'libvpx'
-        config.video_extension = '.webm'
-    end
-
-    if config.audio_format == 'aac' then
-        config.audio_codec = 'aac'
-        config.audio_extension = '.aac'
-    else
-        config.audio_codec = 'libopus'
-        config.audio_extension = '.opus'
-    end
-end
-
-local function validate_config()
-    if not config.audio_bitrate:match('^%d+[kK]$') then
-        config.audio_bitrate = (tonumber(config.audio_bitrate) or 32) .. 'k'
-    end
-
-    if not config.video_bitrate:match('^%d+[kKmM]$') then
-        config.video_bitrate = '1M'
-    end
-
-    if not allowed_presets[config.preset] then
-        config.preset = 'faster'
-    end
-
-    set_encoding_settings()
 end
 
 local function upload_to_catbox(outfile)
@@ -484,7 +435,7 @@ function pref_menu:cycle_formats(config_type)
         end
     end
     config[config_type] = formats[selected + 1] or formats[1]
-    set_encoding_settings()
+    cfg_mgr.set_encoding_settings(config)
     self:update()
 end
 
@@ -572,7 +523,7 @@ local main = (function()
             main_executed = true
         end
 
-        validate_config()
+        cfg_mgr.validate_config(config)
         encoder.init(config, main_menu.timings)
         mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
         mp.msg.warn("Press 'c' to open the videoclip menu.")
