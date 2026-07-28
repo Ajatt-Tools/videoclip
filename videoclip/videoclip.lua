@@ -80,37 +80,10 @@ local function upload_to_catbox(outfile)
     p.copy_or_open_url(r.stdout)
 end
 
-local function parse_command_args(cmd_str)
-    local args = {}
-
-    local buffer = ""
-    local in_quote = false
-    for i = 1, #cmd_str do
-        local c = cmd_str:sub(i, i)
-
-        if c == '"' then
-            in_quote = not in_quote
-        elseif c:match("%s") and not in_quote then
-            if buffer ~= "" then
-                table.insert(args, buffer)
-                buffer = ""
-            end
-        else
-            buffer = buffer .. c
-        end
-    end
-
-    if buffer ~= "" then
-        table.insert(args, buffer)
-    end
-
-    return args
-end
-
 local function upload_to_custom(outfile)
     h.notify("Upload to custom destination", "info", 9999)
 
-    local raw_args = parse_command_args(config.custom_upload_command)
+    local raw_args = h.parse_command_args(config.custom_upload_command)
     local exec_args = {}
 
     for _, arg in ipairs(raw_args) do

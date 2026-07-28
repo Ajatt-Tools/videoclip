@@ -135,6 +135,38 @@ this.quote_if_necessary = function(args)
     return ret
 end
 
+--- Split a command string into argv-style tokens, honoring double quotes.
+--- Pure: depends only on the input string.
+--- Examples:
+---    parse_command_args('curl -F file=@x') → { "curl", "-F", "file=@x" }
+---    parse_command_args('curl -F "a b"') → { "curl", "-F", "a b" }
+---    parse_command_args('') → {}
+this.parse_command_args = function(cmd_str)
+    local args = {}
+    local buffer = ""
+    local in_quote = false
+
+    for i = 1, #cmd_str do
+        local c = cmd_str:sub(i, i)
+        if c == '"' then
+            in_quote = not in_quote
+        elseif c:match("%s") and not in_quote then
+            if not this.is_empty(buffer) then
+                table.insert(args, buffer)
+                buffer = ""
+            end
+        else
+            buffer = buffer .. c
+        end
+    end
+
+    if not this.is_empty(buffer) then
+        table.insert(args, buffer)
+    end
+
+    return args
+end
+
 this.query_xdg_user_dir = function(name)
     local r = this.subprocess({ "xdg-user-dir", name })
     if r.status == 0 then
