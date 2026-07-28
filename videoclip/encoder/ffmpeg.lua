@@ -372,6 +372,38 @@ local function test_reencode_mode(source_path, video_map, audio_map)
             }
     )
 
+    local fixed_fps_backend = make_ffmpeg_encoder(
+            fixtures.make_config({ copy_streams = false, video_fps = 60 }),
+            fixtures.make_timings()
+    )
+
+    -- Video, re-encode, fixed FPS.
+    h.assert_equals(fixed_fps_backend.mkargs_video('/tmp/out.mp4'), {
+        exec.ffmpeg,
+        '-hide_banner',
+        '-nostdin',
+        '-y',
+        '-ss', '1.000',
+        '-to', '2.000',
+        '-i', source_path,
+        '-map', video_map,
+        '-map', audio_map,
+        '-c:a', 'libopus',
+        '-b:a', '32k',
+        '-application', 'voip',
+        '-compression_level', '10',
+        '-c:v', 'libx264',
+        '-b:v', '1M',
+        '-crf', '23',
+        '-preset', 'faster',
+        '-vf', 'scale=-2:480,fps=60,format=yuv420p',
+        '-sn',
+        '-dn',
+        '-map_metadata', '-1',
+        '-map_chapters', '-1',
+        '/tmp/out.mp4',
+    })
+
     -- Audio, re-encode.
     h.assert_equals(reencode_backend.mkargs_audio('/tmp/out.opus'), {
         exec.ffmpeg,
