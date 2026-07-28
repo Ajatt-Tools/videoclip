@@ -194,3 +194,18 @@ The default key binding is `m`.
 If a video has visible subtitles, they will be embedded automatically.
 Toggle them off in mpv if you don't want any subtitles to be visible.
 The default key binding is `v`.
+
+## Running tests
+
+Run tests without mpv or a media file:
+
+```bash
+lua tests/run.lua
+luajit tests/run.lua
+```
+
+Run tests inside a real mpv instance with a local media file:
+
+```bash
+VIDEOCLIP_TEST=TRUE mpv --msg-level=all=no,videoclip=warn "/path/to/video.mkv"
+```
