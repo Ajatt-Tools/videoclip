@@ -117,7 +117,7 @@ local function make_encoder()
 
         local output_file_path, args = mk_output_args(pub.active_backend(), clip_type)
 
-        print("The following args will be executed:", table.concat(h.quote_if_necessary(args), " "))
+        mp.msg.info("Executing: %s", table.concat(h.quote_if_necessary(args), " "))
 
         local output_dir_path = utils.split_path(output_file_path)
         local location_info = utils.file_info(output_dir_path)

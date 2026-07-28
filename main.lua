@@ -7,7 +7,7 @@ local src_root = utils.join_path(mp.get_script_directory(), "videoclip")
 
 -- Add src subfolder to Lua search path
 package.path = string.format("%s/?.lua;%s", src_root, package.path)
-print("new package path", package.path)
+mp.msg.debug("package.path = %s", package.path)
 
 -- Run the main script
 dofile(utils.join_path(src_root, "main.lua"))
