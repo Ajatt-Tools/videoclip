@@ -71,7 +71,7 @@ function this.save_config_file(config)
     if handle ~= nil then
         handle:write(string.format("# Written by %s on %s.\n", NAME, os.date()))
         for key, value in pairs(config) do
-            if ignore_list[key] == nil then
+            if ignore_list[key] == nil then -- not ignored
                 handle:write(string.format('%s=%s\n', key, lua_to_mpv(value)))
             end
         end
