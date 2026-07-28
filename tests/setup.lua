@@ -172,7 +172,10 @@ local mp_utils_stub = {
         local dir, file = path:match("^(.*/)(.*)")
         return dir or '', file or path
     end,
-    file_info = function()
+    file_info = function(path)
+        if path == '/tmp/' then
+            return { is_dir = true }
+        end
         return nil
     end,
 }
