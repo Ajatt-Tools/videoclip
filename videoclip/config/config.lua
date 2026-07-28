@@ -30,6 +30,11 @@ local allowed_presets = {
 local FALLBACK_VIDEO_FPS = 30
 
 local function lua_to_mpv(config_value)
+    --- Convert a Lua config value into its mpv config file representation.
+    --- Examples:
+    ---    true → "yes"
+    ---    false → "no"
+    ---    "32k" → "32k"
     if type(config_value) == 'boolean' then
         return config_value and 'yes' or 'no'
     else
