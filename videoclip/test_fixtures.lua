@@ -6,6 +6,7 @@ Fixtures shared by standalone and in-mpv tests.
 ]]
 
 local defaults = require('config.defaults')
+local cfg_mgr = require('config.config')
 local mp = require('mp')
 local h = require('helpers')
 
@@ -44,6 +45,8 @@ function this.make_config(opts)
     for key, value in pairs(opts) do
         config[key] = value
     end
+    -- Derive codecs and extensions from formats, like the real config flow does.
+    cfg_mgr.set_encoding_settings(config)
     return config
 end
 
