@@ -8,6 +8,7 @@ Read/save config file.
 local mp = require('mp')
 local mpopt = require('mp.options')
 local defaults = require("config.defaults")
+local h = require('helpers')
 local msg = require('mp.msg')
 local utils = require('mp.utils')
 
@@ -26,12 +27,27 @@ local allowed_presets = {
     veryslow = true,
 }
 
+local FALLBACK_VIDEO_FPS = 30
+
 local function lua_to_mpv(config_value)
     if type(config_value) == 'boolean' then
         return config_value and 'yes' or 'no'
     else
         return config_value
     end
+end
+
+local function normalize_video_fps(video_fps)
+    --- Return a safe video_fps value. "auto" keeps the input video's source FPS.
+    if video_fps == 'auto' then
+        return video_fps
+    end
+
+    local numeric_video_fps = tonumber(video_fps)
+    if numeric_video_fps == nil or numeric_video_fps < 1 or numeric_video_fps ~= math.floor(numeric_video_fps) then
+        return FALLBACK_VIDEO_FPS
+    end
+    return numeric_video_fps
 end
 
 function this.read_config_file()
@@ -100,7 +116,29 @@ function this.validate_config(config)
         config.preset = 'faster'
     end
 
+    config.video_fps = normalize_video_fps(config.video_fps)
+
     this.set_encoding_settings(config)
+end
+
+function this.run_tests()
+    --- Run tests for config validation.
+    local valid_config = defaults.get_default()
+    valid_config.video_fps = '60'
+    this.validate_config(valid_config)
+    h.assert_equals(valid_config.video_fps, 60)
+
+    local auto_config = defaults.get_default()
+    auto_config.video_fps = 'auto'
+    this.validate_config(auto_config)
+    h.assert_equals(auto_config.video_fps, 'auto')
+
+    for _, video_fps in ipairs({ '', 'abc', '60.5', '0', '-1' }) do
+        local invalid_config = defaults.get_default()
+        invalid_config.video_fps = video_fps
+        this.validate_config(invalid_config)
+        h.assert_equals(invalid_config.video_fps, FALLBACK_VIDEO_FPS)
+    end
 end
 
 return this
