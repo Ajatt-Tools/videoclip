@@ -21,7 +21,7 @@ local mp = require('mp')
 local OSD = require('osd_styler')
 local p = require('platform')
 local h = require('helpers')
-local encoder = require('encoder.encoder')
+local make_encoder = require('encoder.encoder')
 local Timings = require('timings_mgr')
 local cfg_mgr = require("config.config")
 
@@ -31,6 +31,7 @@ local cfg_mgr = require("config.config")
 -- Options can be changed in the config file.
 -- Config path: ~/.config/mpv/script-opts/videoclip.conf
 local config = cfg_mgr.read_config_file()
+local encoder = make_encoder.new()
 local main_menu
 local pref_menu
 
@@ -278,8 +279,11 @@ end
 
 function main_menu:update()
     local osd = OSD:new():config(config)
-    if encoder.alive == false then
+    if not encoder.is_alive("mpv") then
         osd:red("Error: "):append("mpv is not found in the PATH."):newline()
+    end
+    if (config.use_ffmpeg or config.copy_streams) and not encoder.is_alive("ffmpeg") then
+        osd:red("Error: "):append("ffmpeg is not found in the PATH. FFmpeg encoder is unavailable."):newline()
     end
     osd:submenu('Timings '):italics('(+shift use sub timings)'):newline()
     osd:tab():item('s: '):append('start time '):item(h.human_readable_time(self.timings['start'])):newline()
@@ -329,6 +333,12 @@ pref_menu.keybindings = {
     end },
     { key = 'e', fn = function()
         pref_menu:toggle_embed_subtitles()
+    end },
+    { key = 'g', fn = function()
+        pref_menu:toggle_use_ffmpeg()
+    end },
+    { key = 'C', fn = function()
+        pref_menu:toggle_copy_streams()
     end },
     { key = 'x', fn = function()
         pref_menu:toggle_catbox()
@@ -457,6 +467,16 @@ function pref_menu:toggle_embed_subtitles()
     self:update()
 end
 
+function pref_menu:toggle_use_ffmpeg()
+    config.use_ffmpeg = not config.use_ffmpeg
+    self:update()
+end
+
+function pref_menu:toggle_copy_streams()
+    config.copy_streams = not config.copy_streams
+    self:update()
+end
+
 function pref_menu:toggle_catbox()
     config['litterbox'] = not config['litterbox']
     self:update()
@@ -487,6 +507,8 @@ function pref_menu:update()
     osd:tab():item('f: Video format: '):append(config.video_format):newline()
     osd:tab():item('a: Audio format: '):append(config.audio_format):newline()
     osd:tab():item('B: Audio bitrate: '):append(config.audio_bitrate):newline()
+    osd:tab():item('g: Use FFmpeg: '):append(config.use_ffmpeg and 'yes' or 'no'):newline()
+    osd:tab():item('C: Copy streams: '):append(config.copy_streams and 'yes' or 'no'):newline()
     osd:tab():item('m: Mute audio: '):append(mp.get_property("mute")):newline()
     osd:tab():item('e: Embed subtitles: '):append(mp.get_property("sub-visibility")):newline()
     osd:submenu('Catbox'):newline()
