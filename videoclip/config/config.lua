@@ -167,6 +167,20 @@ local function test_config_field(field, config_value, applied_value)
     h.assert_equals(test_config[field], applied_value)
 end
 
+local function test_encoding_settings(video_format, expected_video_codec, expected_video_extension)
+    --- Assert codec/extension derivation for a video format and both audio formats.
+    for audio_format, audio in pairs({ aac = { 'aac', '.aac' }, opus = { 'libopus', '.opus' } }) do
+        local test_config = defaults.get_default()
+        test_config.video_format = video_format
+        test_config.audio_format = audio_format
+        this.set_encoding_settings(test_config)
+        h.assert_equals(test_config.video_codec, expected_video_codec)
+        h.assert_equals(test_config.video_extension, expected_video_extension)
+        h.assert_equals(test_config.audio_codec, audio[1])
+        h.assert_equals(test_config.audio_extension, audio[2])
+    end
+end
+
 function this.run_tests()
     --- Run tests for config validation.
     test_video_fps('60', 60)
@@ -193,6 +207,11 @@ function this.run_tests()
     -- Preset validation.
     test_config_field('preset', 'slow', 'slow')
     test_config_field('preset', 'insane', 'faster')
+
+    -- Codec/extension derivation for each supported format pair.
+    test_encoding_settings('mp4', 'libx264', '.mp4')
+    test_encoding_settings('vp9', 'libvpx-vp9', '.webm')
+    test_encoding_settings('vp8', 'libvpx', '.webm')
 end
 
 return this
