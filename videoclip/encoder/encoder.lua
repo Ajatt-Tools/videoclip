@@ -126,7 +126,12 @@ local function make_encoder()
             return
         end
 
-        local process_result = function(_, ret, _)
+        local process_result = function(_, ret, err)
+            if ret == nil then
+                h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
+                mp.msg.error("Clip subprocess failed: " .. (err or "unknown error"))
+                return
+            end
             if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
                 h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
             else
