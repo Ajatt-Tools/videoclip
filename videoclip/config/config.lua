@@ -44,7 +44,7 @@ local function normalize_video_fps(video_fps)
     end
 
     local numeric_video_fps = tonumber(video_fps)
-    if numeric_video_fps == nil or numeric_video_fps < 1 or numeric_video_fps ~= math.floor(numeric_video_fps) then
+    if h.is_empty(numeric_video_fps) or numeric_video_fps < 1 or numeric_video_fps ~= math.floor(numeric_video_fps) then
         return FALLBACK_VIDEO_FPS
     end
     return numeric_video_fps
