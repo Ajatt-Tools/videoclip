@@ -289,6 +289,11 @@ this.run_tests = function()
     end
 
     this.assert_equals(this.partial(greet, "Hello")("Lua"), "Hello, Lua")
+
+    this.assert_equals(this.parse_command_args('curl -F file=@x'), { "curl", "-F", "file=@x" })
+    this.assert_equals(this.parse_command_args('curl -F "a b"'), { "curl", "-F", "a b" })
+    this.assert_equals(this.parse_command_args(''), {})
+    this.assert_equals(this.parse_command_args('  a  b  '), { "a", "b" })
 end
 
 return this
