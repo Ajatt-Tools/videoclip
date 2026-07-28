@@ -152,8 +152,11 @@ function this.run_tests()
     test_video_fps('60', 60)
     test_video_fps(60, 60)
     test_video_fps('auto', 'auto')
-    -- Invalid values
-    for _, invalid_fps in ipairs({ '', 'abc', '60.5', '0', '-1' }) do
+    -- Fractional values are truncated to whole numbers.
+    test_video_fps('60.5', 60)
+    test_video_fps('23.976', 23)
+    -- Invalid values fall back to FALLBACK_VIDEO_FPS.
+    for _, invalid_fps in ipairs({ '', 'abc', '0', '-1' }) do
         test_video_fps(invalid_fps, FALLBACK_VIDEO_FPS)
     end
     test_video_fps(nil, FALLBACK_VIDEO_FPS)
