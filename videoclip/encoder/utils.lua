@@ -31,9 +31,9 @@ end
 --- Extract the file extension from a source path after stripping URL suffixes.
 --- Returns default_ext if no extension can be determined.
 --- Examples:
----    "file.txt?x=1" → "txt"
----    "file.txt#section" → "txt"
----    "file.txt?x=1#section" → "txt"
+---    "file.txt?x=1" → ".txt"
+---    "file.txt#section" → ".txt"
+---    "file.txt?x=1#section" → ".txt"
 function this.source_extension(src_path, default_ext)
     local cleaned = this.strip_url_suffix(src_path)
     local ext = cleaned:match('%.(%w+)$')
