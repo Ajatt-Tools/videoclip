@@ -121,24 +121,23 @@ function this.validate_config(config)
     this.set_encoding_settings(config)
 end
 
+local function test_video_fps(config_value, applied_value)
+    local test_config = defaults.get_default()
+    test_config.video_fps = config_value
+    this.validate_config(test_config)
+    h.assert_equals(test_config.video_fps, applied_value)
+end
+
 function this.run_tests()
     --- Run tests for config validation.
-    local valid_config = defaults.get_default()
-    valid_config.video_fps = '60'
-    this.validate_config(valid_config)
-    h.assert_equals(valid_config.video_fps, 60)
-
-    local auto_config = defaults.get_default()
-    auto_config.video_fps = 'auto'
-    this.validate_config(auto_config)
-    h.assert_equals(auto_config.video_fps, 'auto')
-
-    for _, video_fps in ipairs({ '', 'abc', '60.5', '0', '-1' }) do
-        local invalid_config = defaults.get_default()
-        invalid_config.video_fps = video_fps
-        this.validate_config(invalid_config)
-        h.assert_equals(invalid_config.video_fps, FALLBACK_VIDEO_FPS)
+    test_video_fps('60', 60)
+    test_video_fps(60, 60)
+    test_video_fps('auto', 'auto')
+    -- Invalid values
+    for _, invalid_fps in ipairs({ '', 'abc', '60.5', '0', '-1' }) do
+        test_video_fps(invalid_fps, FALLBACK_VIDEO_FPS)
     end
+    test_video_fps(nil, FALLBACK_VIDEO_FPS)
 end
 
 return this
