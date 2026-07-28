@@ -125,6 +125,19 @@ video_fps=auto
 # Uses BT.2390 tone mapping targeting BT.1886 transfer characteristics and BT.709 color primaries.
 hdr_to_sdr=no
 
+# Use FFmpeg encoder instead of mpv encoder.
+# You need to install ffmpeg and add it to the PATH first.
+# https://wiki.archlinux.org/title/FFmpeg
+# https://www.ffmpeg.org/download.html
+# FFmpeg encoder is unable to create clips from remote content (like YouTube videos).
+use_ffmpeg=no
+
+# Copy audio/video streams without re-encoding. This forces FFmpeg even if use_ffmpeg=no.
+# Faster, but cuts may be keyframe-limited and encode settings such as bitrate,
+# scaling, FPS, subtitles, and HDR-to-SDR are ignored. Copy mode preserves source
+# video container and derives audio extension from the selected audio codec.
+copy_streams=no
+
 # Audio settings
 # Available formats: opus or aac
 audio_format=opus
