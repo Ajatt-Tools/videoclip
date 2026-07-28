@@ -59,8 +59,8 @@ end
 --- Build a `-map` argument for the selected track of the given type.
 --- Uses the fallback (e.g. "0:v:0") when the selected track is unknown.
 --- Examples:
----    ffmpeg_stream_map("audio", "0:a:0?") → "0:1"
----    ffmpeg_stream_map("video", "0:v:0") → "0:v:0"
+---    ffmpeg_stream_map("audio", "0:a:0?") → "0:1"   (when the audio ff-index is 1)
+---    ffmpeg_stream_map("video", "0:v:0") → "0:v:0"  (when the video ff-index is unknown, fallback is returned)
 function this.ffmpeg_stream_map(track_type, fallback)
     local ff_index = this.current_track_ff_index(track_type)
     if ff_index ~= nil then
