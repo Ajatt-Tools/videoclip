@@ -78,6 +78,9 @@ function this.read_config_file()
 end
 
 function this.save_config_file(config)
+    --- Write the config table to ~/.config/mpv/script-opts/videoclip.conf.
+    --- Derived values (codecs and extensions) are not written.
+    --- Returns a success message, or nil plus an error message on failure.
     local ignore_list = {
         video_extension = true,
         audio_extension = true,
