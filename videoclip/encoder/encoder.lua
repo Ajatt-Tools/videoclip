@@ -176,7 +176,15 @@ local function make_encoder()
 end
 
 local function run_tests()
-    --- Run tests for backend routing.
+    --- Run tests for filename template expansion and backend routing.
+    local fixed_date = { year = 2024, month = 3, day = 5, hour = 14, min = 7, sec = 9 }
+    local timings = { ['start'] = 1.5, ['end'] = 4.25 }
+
+    h.assert_equals(expand_filename_template('%n_%s-%e', 'video', 'video', timings, fixed_date), 'video_00m01s500ms-00m04s250ms')
+    h.assert_equals(expand_filename_template('%d', 'video', 'video', timings, fixed_date), '00m02s750ms')
+    h.assert_equals(expand_filename_template('%Y-%M-%D_%H-%I-%P-%N-%S', 'v', 't', timings, fixed_date), '2024-03-05_14-02-pm-07-09')
+    h.assert_equals(expand_filename_template('clip_%t', 'file', 'My Title', timings, fixed_date), 'clip_My Title')
+
     local test_encoder = make_encoder()
 
     test_encoder.init(fixtures.make_config({ use_ffmpeg = false, copy_streams = false }), fixtures.make_timings())
