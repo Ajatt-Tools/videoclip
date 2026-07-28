@@ -105,6 +105,12 @@ function this.save_config_file(config)
 end
 
 function this.set_encoding_settings(config)
+    --- Derive codec and extension fields from the configured video and audio formats.
+    --- Examples:
+    ---    video_format="mp4" → video_codec="libx264", video_extension=".mp4"
+    ---    video_format="vp9" → video_codec="libvpx-vp9", video_extension=".webm"
+    ---    audio_format="aac" → audio_codec="aac", audio_extension=".aac"
+    ---    audio_format="opus" → audio_codec="libopus", audio_extension=".opus"
     if config.video_format == 'mp4' then
         config.video_codec = 'libx264'
         config.video_extension = '.mp4'
