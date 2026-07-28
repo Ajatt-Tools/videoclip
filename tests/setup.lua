@@ -199,8 +199,13 @@ h.subprocess = function(args)
     return { status = 0, stdout = '', stderr = '' }
 end
 
-h.subprocess_async = function(_, callback)
-    if callback then
+h.subprocess_async = function(args, callback)
+    if callback == nil then
+        return
+    end
+    if args[1] == 'fail-async' then
+        callback(nil, nil, 'simulated async failure')
+    else
         callback(nil, { status = 0, stdout = '', stderr = '' }, nil)
     end
 end
