@@ -152,6 +152,7 @@ function this.validate_config(config)
 end
 
 local function test_video_fps(config_value, applied_value)
+    --- Assert that validate_config normalizes config_value into applied_value.
     local test_config = defaults.get_default()
     test_config.video_fps = config_value
     this.validate_config(test_config)
