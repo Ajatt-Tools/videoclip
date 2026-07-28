@@ -134,11 +134,11 @@ end
 function this.validate_config(config)
     --- Normalize invalid config values in place, then derive encoding settings.
     --- Runs before encoder argument construction so encoders never see bad input.
-    if not config.audio_bitrate:match('^%d+[kK]$') then
+    if not tostring(config.audio_bitrate):match('^%d+[kK]$') then
         config.audio_bitrate = (tonumber(config.audio_bitrate) or 32) .. 'k'
     end
 
-    if not config.video_bitrate:match('^%d+[kKmM]$') then
+    if not tostring(config.video_bitrate):match('^%d+[kKmM]$') then
         config.video_bitrate = '1M'
     end
 
