@@ -182,17 +182,66 @@ local function make_mpv_encoder(config, timings)
     return pub
 end
 
+local function test_mkargs_video(opts)
+    --- Test video argument generation with exact list equality.
+    opts = opts or {}
+    local config = fixtures.make_config({
+        hdr_to_sdr = opts.hdr_to_sdr or false,
+        video_fps = opts.video_fps or 'auto',
+        audio_format = opts.audio_format or 'opus',
+    })
+    local test_encoder = make_mpv_encoder(config, fixtures.make_timings())
+    local source_path = mp.get_property('path')
+    local mute = opts.mute or 'no'
+    local args, volume, sub_delay = fixtures.with_properties(
+            function()
+                return test_encoder.mkargs_video('/tmp/out.mp4'), mp.get_property('volume'), mp.get_property('sub-delay')
+            end,
+            fixtures.make_pinned_properties(mute)
+    )
+    h.assert_equals(args, fixtures.expected_video_args({
+        hdr_to_sdr = opts.hdr_to_sdr or false,
+        mute = mute,
+        volume = volume,
+        sub_delay = sub_delay,
+        video_fps = opts.video_fps or 'auto',
+        audio_format = opts.audio_format or 'opus',
+        source_path = source_path,
+    }))
+end
+
+local function test_mkargs_audio(opts)
+    --- Test audio argument generation with exact list equality.
+    opts = opts or {}
+    local out_path = opts.out_path or '/tmp/out.opus'
+    local config = fixtures.make_config({ audio_format = opts.audio_format or 'opus' })
+    local test_encoder = make_mpv_encoder(config, fixtures.make_timings())
+    local source_path = mp.get_property('path')
+    local args, volume = fixtures.with_properties(
+            function()
+                return test_encoder.mkargs_audio(out_path), mp.get_property('volume')
+            end,
+            { aid = '1', volume = '100', ['ytdl-format'] = '' }
+    )
+    h.assert_equals(args, fixtures.expected_audio_args({
+        audio_format = opts.audio_format or 'opus',
+        out_path = out_path,
+        volume = volume,
+        source_path = source_path,
+    }))
+end
+
 local function run_tests()
     --- Run tests for the mpv encoder backend.
-    local test_encoder = make_mpv_encoder(fixtures.make_config({ hdr_to_sdr = true }), fixtures.make_timings())
-    local args = test_encoder.mkargs_video('/tmp/out.mp4')
-    h.assert_equals(fixtures.contains(args, '--hwdec=no'), true)
-    h.assert_equals(fixtures.contains(args, '--tone-mapping=bt.2390'), true)
-    h.assert_equals(fixtures.contains(args, '--target-trc=bt.1886'), true)
-    h.assert_equals(fixtures.contains(args, '--target-prim=bt.709'), true)
-    h.assert_equals(fixtures.contains(args, '--vf-add=gpu'), true)
-    h.assert_equals(fixtures.index_of(args, '--vf-add=gpu') < fixtures.index_of(args, '--vf-add=scale=-2:480'), true)
-    h.assert_equals(fixtures.index_of(args, '--vf-add=scale=-2:480') < fixtures.index_of(args, '--vf-add=format=yuv420p'), true)
+    test_mkargs_video({ hdr_to_sdr = true, mute = 'no' })
+    test_mkargs_video({ hdr_to_sdr = true, mute = 'yes' })
+    test_mkargs_video({ hdr_to_sdr = false, mute = 'no' })
+    test_mkargs_video({ hdr_to_sdr = false, mute = 'yes' })
+    test_mkargs_video({ video_fps = '60' })
+    test_mkargs_video({ audio_format = 'aac' })
+
+    test_mkargs_audio({ audio_format = 'opus', out_path = '/tmp/out.opus' })
+    test_mkargs_audio({ audio_format = 'aac', out_path = '/tmp/out.aac' })
 end
 
 return {
