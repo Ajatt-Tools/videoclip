@@ -12,6 +12,30 @@ local mpv_encoder = require('encoder.mpv')
 local ffmpeg_encoder = require('encoder.ffmpeg')
 local fixtures = require('test_fixtures')
 
+--- Expand a filename template by substituting the available tags.
+--- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
+---                 %Y = year, %M = month, %D = day, %H = hours (24), %I = hours (12),
+---                 %P = am/pm, %N = minutes, %S = seconds.
+--- Examples:
+---    expand_filename_template('%n_%s-%e', 'video', 'video', {start=0, ['end']=1}, os.date('*t'))
+local function expand_filename_template(template, filename, title, timings, date)
+    local twelve = h.twelve_hour(date.hour)
+    return (template
+            :gsub("%%n", h.truncate_utf8_bytes(filename, 200))
+            :gsub("%%t", h.truncate_utf8_bytes(title, 200))
+            :gsub("%%s", h.human_readable_time(timings['start']))
+            :gsub("%%e", h.human_readable_time(timings['end']))
+            :gsub("%%d", h.human_readable_time(timings['end'] - timings['start']))
+            :gsub("%%Y", tostring(date.year))
+            :gsub("%%M", h.two_digit(date.month))
+            :gsub("%%D", h.two_digit(date.day))
+            :gsub("%%H", h.two_digit(date.hour))
+            :gsub("%%I", h.two_digit(twelve.hour))
+            :gsub("%%P", twelve.sign)
+            :gsub("%%N", h.two_digit(date.min))
+            :gsub("%%S", h.two_digit(date.sec)))
+end
+
 local function make_encoder()
     local this = {
         config = nil,
@@ -49,25 +73,7 @@ local function make_encoder()
             title = h.clean_forbidden_characters(title)
         end
 
-        -- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
-        --                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
-        --                 %P = am/pm %N = minutes, %S = seconds
-        filename = this.config.filename_template
-                       :gsub("%%n", h.truncate_utf8_bytes(filename, 200))
-                       :gsub("%%t", h.truncate_utf8_bytes(title, 200))
-                       :gsub("%%s", h.human_readable_time(this.timings['start']))
-                       :gsub("%%e", h.human_readable_time(this.timings['end']))
-                       :gsub("%%d", h.human_readable_time(this.timings['end'] - this.timings['start']))
-                       :gsub("%%Y", date.year)
-                       :gsub("%%M", h.two_digit(date.month))
-                       :gsub("%%D", h.two_digit(date.day))
-                       :gsub("%%H", h.two_digit(date.hour))
-                       :gsub("%%I", h.two_digit(h.twelve_hour(date.hour)['hour']))
-                       :gsub("%%P", h.twelve_hour(date.hour)['sign'])
-                       :gsub("%%N", h.two_digit(date.min))
-                       :gsub("%%S", h.two_digit(date.sec))
-
-        return filename
+        return expand_filename_template(this.config.filename_template, filename, title, this.timings, date)
     end
 
     local function uses_ffmpeg()
