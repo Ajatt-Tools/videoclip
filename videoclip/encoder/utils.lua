@@ -50,7 +50,7 @@ end
 ---    current_track_ff_index("video") → "0"
 function this.current_track_ff_index(track_type)
     local value = mp.get_property_native(string.format("current-tracks/%s/ff-index", track_type))
-    if value == nil then
+    if h.is_empty(value) then
         return nil
     end
     return tostring(value)
