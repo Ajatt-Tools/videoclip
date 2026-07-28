@@ -132,7 +132,7 @@ local function make_encoder()
                 mp.msg.error("Clip subprocess failed: " .. (err or "unknown error"))
                 return
             end
-            if ret.status ~= 0 or string.match(ret.stdout, "could not open") then
+            if ret.status ~= 0 or string.match(ret.stdout or "", "could not open") then
                 h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
             else
                 h.notify(string.format("Clip saved to %s.", output_file_path), "info", 2)
