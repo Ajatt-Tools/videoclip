@@ -159,6 +159,14 @@ local function test_video_fps(config_value, applied_value)
     h.assert_equals(test_config.video_fps, applied_value)
 end
 
+local function test_config_field(field, config_value, applied_value)
+    --- Assert that validate_config normalizes one config field into applied_value.
+    local test_config = defaults.get_default()
+    test_config[field] = config_value
+    this.validate_config(test_config)
+    h.assert_equals(test_config[field], applied_value)
+end
+
 function this.run_tests()
     --- Run tests for config validation.
     test_video_fps('60', 60)
@@ -172,6 +180,19 @@ function this.run_tests()
         test_video_fps(invalid_fps, FALLBACK_VIDEO_FPS)
     end
     test_video_fps(nil, FALLBACK_VIDEO_FPS)
+
+    -- Audio bitrate normalization.
+    test_config_field('audio_bitrate', '32', '32k')
+    test_config_field('audio_bitrate', '64k', '64k')
+    test_config_field('audio_bitrate', 32, '32k')
+    test_config_field('audio_bitrate', 'junk', '32k')
+    -- Video bitrate validation.
+    test_config_field('video_bitrate', '1M', '1M')
+    test_config_field('video_bitrate', '500k', '500k')
+    test_config_field('video_bitrate', 'junk', '1M')
+    -- Preset validation.
+    test_config_field('preset', 'slow', 'slow')
+    test_config_field('preset', 'insane', 'faster')
 end
 
 return this
