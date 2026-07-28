@@ -44,12 +44,26 @@ end
 
 local function normalize_video_fps(video_fps)
     --- Return a safe video_fps value. "auto" keeps the input video's source FPS.
+    --- Numeric values are truncated to whole numbers; anything else falls back.
+    --- Examples:
+    ---    "auto" → "auto"
+    ---    "60" → 60
+    ---    60 → 60
+    ---    "60.5" → 60
+    ---    "23.976" → 23
+    ---    "abc" → 30 (fallback)
+    ---    "0" → 30 (fallback)
     if video_fps == 'auto' then
         return video_fps
     end
 
     local numeric_video_fps = tonumber(video_fps)
-    if h.is_empty(numeric_video_fps) or numeric_video_fps < 1 or numeric_video_fps ~= math.floor(numeric_video_fps) then
+    if h.is_empty(numeric_video_fps) then
+        return FALLBACK_VIDEO_FPS
+    end
+
+    numeric_video_fps = math.floor(numeric_video_fps)
+    if numeric_video_fps < 1 then
         return FALLBACK_VIDEO_FPS
     end
     return numeric_video_fps
