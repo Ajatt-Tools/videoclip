@@ -34,6 +34,16 @@ local function make_ffmpeg_encoder(config, timings)
         }
     end
 
+    function self.prepend_input_args(...)
+        --- Return the shared ffmpeg input prefix: seek range + source path + extra args.
+        return self.prepend_common_args(
+                '-ss', eutils.toms(self.timings['start']),
+                '-to', eutils.toms(self.timings['end']),
+                '-i', mp.get_property('path'),
+                ...
+        )
+    end
+
     function self.selected_video_map()
         --- Return an ffmpeg -map value for the currently selected video stream.
         return eutils.ffmpeg_stream_map('video', '0:v:0')
@@ -102,10 +112,7 @@ local function make_ffmpeg_encoder(config, timings)
 
     function self.mkargs_video_copy(out_clip_path)
         --- Return ffmpeg args that copy the selected video and optional audio streams.
-        local args = self.prepend_common_args(
-                '-ss', eutils.toms(self.timings['start']),
-                '-to', eutils.toms(self.timings['end']),
-                '-i', mp.get_property('path'),
+        local args = self.prepend_input_args(
                 '-map', self.selected_video_map(),
                 '-c:v', 'copy'
         )
@@ -126,10 +133,7 @@ local function make_ffmpeg_encoder(config, timings)
 
     function self.mkargs_video_reencode(out_clip_path)
         --- Return ffmpeg args that re-encode the selected video and optional audio streams.
-        local args = self.prepend_common_args(
-                '-ss', eutils.toms(self.timings['start']),
-                '-to', eutils.toms(self.timings['end']),
-                '-i', mp.get_property('path'),
+        local args = self.prepend_input_args(
                 '-map', self.selected_video_map()
         )
         if self.audio_disabled() then
@@ -147,10 +151,7 @@ local function make_ffmpeg_encoder(config, timings)
 
     function self.mkargs_audio_copy(out_clip_path)
         --- Return ffmpeg args that copy the selected audio stream.
-        local args = self.prepend_common_args(
-                '-ss', eutils.toms(self.timings['start']),
-                '-to', eutils.toms(self.timings['end']),
-                '-i', mp.get_property('path'),
+        local args = self.prepend_input_args(
                 '-map', self.selected_audio_map(),
                 '-vn',
                 '-sn',
@@ -166,10 +167,7 @@ local function make_ffmpeg_encoder(config, timings)
 
     function self.mkargs_audio_reencode(out_clip_path)
         --- Return ffmpeg args that re-encode the selected audio stream.
-        local args = self.prepend_common_args(
-                '-ss', eutils.toms(self.timings['start']),
-                '-to', eutils.toms(self.timings['end']),
-                '-i', mp.get_property('path'),
+        local args = self.prepend_input_args(
                 '-map', self.selected_audio_map(),
                 '-vn',
                 '-sn',
