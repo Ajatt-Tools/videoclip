@@ -533,6 +533,31 @@ function pref_menu:save()
 end
 
 ------------------------------------------------------------
+-- Tests
+
+local function run_tests()
+    h.run_tests()
+    require('encoder.utils').run_tests()
+    require('encoder.mpv').run_tests()
+    require('encoder.ffmpeg').run_tests()
+    make_encoder.run_tests()
+end
+
+local function pcall_tests()
+    if os.getenv("VIDEOCLIP_TEST") == "TRUE" then
+        mp.msg.warn("RUNNING TESTS")
+        local success, err = pcall(run_tests)
+        if success then
+            mp.msg.warn("TESTS PASSED")
+        else
+            mp.msg.error("TESTS FAILED")
+            mp.msg.error(err)
+        end
+        mp.commandv("quit")
+    end
+end
+
+------------------------------------------------------------
 -- Finally, set an 'entry point' in mpv
 
 local main = (function()
@@ -547,6 +572,7 @@ local main = (function()
 
         cfg_mgr.validate_config(config)
         encoder.init(config, main_menu.timings)
+        pcall_tests()
         mp.add_key_binding('c', 'videoclip-menu-open', main_menu.open)
         mp.msg.warn("Press 'c' to open the videoclip menu.")
     end
