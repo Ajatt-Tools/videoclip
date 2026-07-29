@@ -172,7 +172,7 @@ local function make_encoder()
         elseif encoder_name == "ffmpeg" then
             return this.ffmpeg.is_alive()
         end
-        error("unknown encoder name: " .. encoder_name)
+        error("unknown encoder name: " .. tostring(encoder_name))
     end
 
     function pub.init(config, timings_mgr)
