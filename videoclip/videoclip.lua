@@ -240,7 +240,7 @@ end
 
 function main_menu:update()
     local osd = OSD:new():config(config)
-    if not encoder.is_alive("mpv") then
+    if not config.use_ffmpeg and not config.copy_streams and not encoder.is_alive("mpv") then
         osd:red("Error: "):append("mpv is not found in the PATH."):newline()
     end
     if (config.use_ffmpeg or config.copy_streams) and not encoder.is_alive("ffmpeg") then
