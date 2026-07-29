@@ -118,8 +118,8 @@ video_quality=23
 # https://trac.ffmpeg.org/wiki/Encode/H.264
 preset=faster
 # FPS / framerate. The default "auto" keeps the input video's source FPS.
-# To force a fixed output FPS, set a positive whole number such as 30 or 60.
-# Empty, non-numeric, fractional, zero, and negative values fall back to 30.
+# To force a fixed output FPS, set a positive number; fractional values are truncated (60.5 becomes 60, 23.976 becomes 23).
+# Empty, non-numeric, zero, and negative values fall back to 30.
 video_fps=auto
 #video_fps=60
 
