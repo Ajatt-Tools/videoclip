@@ -421,12 +421,33 @@ local function test_reencode_mode(source_path, video_map, audio_map)
     })
 end
 
+local function test_mk_out_paths()
+    --- Test output path construction in re-encode and stream copy modes.
+    local reencode_backend = make_ffmpeg_encoder(fixtures.make_config({ copy_streams = false }), fixtures.make_timings())
+    h.assert_equals(reencode_backend.mk_out_path_video('clip'), '/tmp/clip.mp4')
+    h.assert_equals(reencode_backend.mk_out_path_audio('clip'), '/tmp/clip.opus')
+
+    -- Copy mode keeps the current source video container.
+    local copy_backend = make_ffmpeg_encoder(fixtures.make_config({ copy_streams = true }), fixtures.make_timings())
+    h.assert_equals(
+            copy_backend.mk_out_path_video('clip'),
+            '/tmp/clip' .. eutils.source_extension(mp.get_property('path'), 'mkv')
+    )
+
+    -- Copy mode derives the audio extension from the selected track's codec.
+    h.assert_equals(
+            copy_backend.mk_out_path_audio('clip'),
+            '/tmp/clip' .. eutils.audio_codec_to_extension(mp.get_property_native('current-tracks/audio/codec'))
+    )
+end
+
 local function run_tests()
     --- Run tests for the ffmpeg encoder backend.
     local source_path = mp.get_property('path')
     local video_map = eutils.ffmpeg_stream_map('video', '0:v:0')
     local audio_map = eutils.ffmpeg_stream_map('audio', '0:a:0?')
 
+    test_mk_out_paths()
     -- Stream copy mode
     test_copy_mode(source_path, video_map, audio_map)
     -- Re-encode mode
