@@ -25,7 +25,24 @@ local function make_mpv_encoder(config, timings)
         alive = nil,
         player = exec.mpv,
     }
-    local pub = {name = NAME}
+    local pub = { name = NAME }
+
+    function self.prepend_common_args(...)
+        --- Return the shared mpv command prefix plus extra arguments.
+        return {
+            self.player,
+            mp.get_property('path'),
+            '--loop-file=no',
+            '--keep-open=no',
+            '--no-ocopy-metadata',
+            '--no-sub',
+            '--audio-channels=2',
+            '--oacopts-add=vbr=on',
+            '--oacopts-add=application=voip',
+            '--oacopts-add=compression_level=10',
+            ...,
+        }
+    end
 
     function self.get_ext_subs_paths()
         --- Return external subtitle paths keyed by track ID.
@@ -93,27 +110,17 @@ local function make_mpv_encoder(config, timings)
 
     function pub.mkargs_audio(out_clip_path)
         --- Return mpv arguments for creating a re-encoded audio clip.
-        return {
-            self.player,
-            mp.get_property('path'),
-            '--loop-file=no',
-            '--keep-open=no',
-            '--no-ocopy-metadata',
-            '--no-sub',
-            '--audio-channels=2',
-            '--video=no',
-            '--oacopts-add=vbr=on',
-            '--oacopts-add=application=voip',
-            '--oacopts-add=compression_level=10',
-            table.concat { '--oac=', self.config.audio_codec },
-            table.concat { '--start=', eutils.toms(self.timings['start']) },
-            table.concat { '--end=', eutils.toms(self.timings['end']) },
-            table.concat { '--volume=', mp.get_property('volume') },
-            table.concat { '--aid=', mp.get_property("aid") }, -- track number
-            table.concat { '--oacopts-add=b=', self.config.audio_bitrate },
-            table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-            table.concat { '--o=', out_clip_path }
-        }
+        return self.prepend_common_args(
+                '--video=no',
+                table.concat { '--oac=', self.config.audio_codec },
+                table.concat { '--start=', eutils.toms(self.timings['start']) },
+                table.concat { '--end=', eutils.toms(self.timings['end']) },
+                table.concat { '--volume=', mp.get_property('volume') },
+                table.concat { '--aid=', mp.get_property("aid") }, -- track number
+                table.concat { '--oacopts-add=b=', self.config.audio_bitrate },
+                table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
+                table.concat { '--o=', out_clip_path }
+        )
     end
 
     function pub.set_alive()
@@ -132,40 +139,32 @@ local function make_mpv_encoder(config, timings)
 
     function pub.mkargs_video(out_clip_path)
         --- Return mpv arguments for creating a re-encoded video clip.
-        local args = {
-            self.player,
-            mp.get_property('path'),
-            '--loop-file=no',
-            '--keep-open=no',
-            '--no-ocopy-metadata',
-            '--no-sub',
-            '--audio-channels=2',
-            '--oacopts-add=vbr=on',
-            '--oacopts-add=application=voip',
-            '--oacopts-add=compression_level=10',
-            '--sub-font-provider=auto',
-            '--embeddedfonts=yes',
-            table.concat { '--sub-font=', self.config.sub_font },
-            table.concat { '--ovc=', self.config.video_codec },
-            table.concat { '--oac=', self.config.audio_codec },
-            table.concat { '--start=', eutils.toms(self.timings['start']) },
-            table.concat { '--end=', eutils.toms(self.timings['end']) },
-            table.concat { '--aid=', mp.get_property("aid") }, -- track number
-            table.concat { '--mute=', mp.get_property("mute") },
-            table.concat { '--volume=', mp.get_property('volume') },
-            table.concat { '--ovcopts-add=b=', self.config.video_bitrate },
-            table.concat { '--oacopts-add=b=', self.config.audio_bitrate },
-            table.concat { '--ovcopts-add=crf=', self.config.video_quality },
-            table.concat { '--ovcopts-add=preset=', self.config.preset },
-            table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
-            table.concat { '--o=', out_clip_path },
-            table.concat { '--sid=', mp.get_property("sid") },
-            table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
-            table.concat { '--sub-delay=', mp.get_property("sub-delay") },
-            table.concat { '--sub-visibility=', mp.get_property("sub-visibility") },
-            table.concat { '--secondary-sub-visibility=', mp.get_property("secondary-sub-visibility") },
-            table.concat { '--sub-back-color=', mp.get_property("sub-back-color") },
-        }
+        --- --sub-back-color is passed last so the #args inserts below (sub-border-style,
+        --- video filters, external subs) stay before it, matching the expected arg order.
+        local args = self.prepend_common_args(
+                '--sub-font-provider=auto',
+                '--embeddedfonts=yes',
+                table.concat { '--sub-font=', self.config.sub_font },
+                table.concat { '--ovc=', self.config.video_codec },
+                table.concat { '--oac=', self.config.audio_codec },
+                table.concat { '--start=', eutils.toms(self.timings['start']) },
+                table.concat { '--end=', eutils.toms(self.timings['end']) },
+                table.concat { '--aid=', mp.get_property("aid") }, -- track number
+                table.concat { '--mute=', mp.get_property("mute") },
+                table.concat { '--volume=', mp.get_property('volume') },
+                table.concat { '--ovcopts-add=b=', self.config.video_bitrate },
+                table.concat { '--oacopts-add=b=', self.config.audio_bitrate },
+                table.concat { '--ovcopts-add=crf=', self.config.video_quality },
+                table.concat { '--ovcopts-add=preset=', self.config.preset },
+                table.concat { '--ytdl-format=', mp.get_property("ytdl-format") },
+                table.concat { '--o=', out_clip_path },
+                table.concat { '--sid=', mp.get_property("sid") },
+                table.concat { '--secondary-sid=', mp.get_property("secondary-sid") },
+                table.concat { '--sub-delay=', mp.get_property("sub-delay") },
+                table.concat { '--sub-visibility=', mp.get_property("sub-visibility") },
+                table.concat { '--secondary-sub-visibility=', mp.get_property("secondary-sub-visibility") },
+                table.concat { '--sub-back-color=', mp.get_property("sub-back-color") }
+        )
         if mp.get_property("sub-border-style", nil) ~= nil then
             table.insert(args, #args, table.concat { '--sub-border-style=', mp.get_property("sub-border-style") })
         end
