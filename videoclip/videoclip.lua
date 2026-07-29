@@ -498,6 +498,7 @@ end
 
 local function run_tests()
     h.run_tests()
+    cfg_mgr.run_tests()
     require('encoder.utils').run_tests()
     require('encoder.mpv').run_tests()
     require('encoder.ffmpeg').run_tests()
