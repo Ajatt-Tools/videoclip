@@ -39,6 +39,7 @@ end
 
 function this.make_config(opts)
     --- Return config for encoder tests, based on the real defaults.
+    --- Values are normalized with the same validate_config pass used in production.
     opts = opts or {}
     local config = defaults.get_default()
     config.video_folder_path = opts.video_folder_path or '/tmp'
@@ -46,8 +47,8 @@ function this.make_config(opts)
     for key, value in pairs(opts) do
         config[key] = value
     end
-    -- Derive codecs and extensions from formats, like the real config flow does.
-    cfg_mgr.set_encoding_settings(config)
+    -- Normalize and derive codecs/extensions/fps, like the real config flow does.
+    cfg_mgr.validate_config(config)
     return config
 end
 
