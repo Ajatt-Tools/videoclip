@@ -69,6 +69,7 @@ local function make_mpv_encoder(config, timings)
     --- Public
 
     function pub.is_alive()
+        --- Return true when mpv or mpvnet can be executed.
         return self.alive == true
     end
 
