@@ -41,6 +41,31 @@ To update the user-script on demand later, you can execute:
 cd ~/.config/mpv/scripts/videoclip && git pull
 ```
 
+### Using make
+
+Clone the repository first, then install to `~/.config/mpv` by running:
+
+``` bash
+git clone 'https://github.com/Ajatt-Tools/videoclip.git'
+cd videoclip
+make install
+```
+
+The installation target copies the `videoclip/` directory to `~/.config/mpv/scripts/`.
+If none exists, installs the example config to `~/.config/mpv/script-opts/videoclip.conf`.
+
+To uninstall, run:
+
+``` bash
+make uninstall
+```
+
+To install to a different mpv config directory, set `PREFIX`:
+
+``` bash
+make PREFIX="$HOME/.config/mpv" install
+```
+
 ### Manually
 
 Download
