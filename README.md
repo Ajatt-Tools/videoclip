@@ -86,89 +86,11 @@ The config file should be created by the user, if needed.
 If a parameter is not specified in the config file, the default value will be used.
 mpv doesn't tolerate spaces before and after `=`.
 
-Example configuration file:
+The example configuration file is stored in
+[`videoclip/config/default_config.conf`](videoclip/config/default_config.conf).
+Release pages also provide it as `videoclip.conf`.
 
-```
-# Absolute paths to the folders where generated clips will be placed.
-# `~` is supported, but environment variables (e.g. `$HOME`) are not supported due to mpv limitations.
-video_folder_path=~/Videos
-audio_folder_path=~/Music
-
-# Menu size
-font_size=24
-
-# OSD settings. Line alignment: https://aegisub.org/docs/3.2/ASS_Tags/#\an
-osd_align=7
-osd_outline=1.5
-
-# Clean filenames (remove special characters) (yes or no)
-clean_filename=yes
-
-# Video settings
-video_width=-2
-video_height=480
-video_bitrate=1M
-# Available video formats: mp4, vp9, vp8
-video_format=mp4
-# The range of the scale is 0–51, where 0 is lossless,
-# 23 is the default, and 51 is worst quality possible.
-# Insane values like 9999 still work but produce the worst quality.
-video_quality=23
-# Use the slowest preset that you have patience for.
-# https://trac.ffmpeg.org/wiki/Encode/H.264
-preset=faster
-# FPS / framerate. The default "auto" keeps the input video's source FPS.
-# To force a fixed output FPS, set a positive number; fractional values are truncated (60.5 becomes 60, 23.976 becomes 23).
-# Empty, non-numeric, zero, and negative values fall back to 30.
-video_fps=auto
-#video_fps=60
-
-# Convert HDR sources to SDR while clipping. Useful for HDR videos that otherwise export dim or black.
-# Uses BT.2390 tone mapping targeting BT.1886 transfer characteristics and BT.709 color primaries.
-hdr_to_sdr=no
-
-# Use FFmpeg encoder instead of mpv encoder.
-# You need to install ffmpeg and add it to the PATH first.
-# https://wiki.archlinux.org/title/FFmpeg
-# https://www.ffmpeg.org/download.html
-# FFmpeg encoder is unable to create clips from remote content (like YouTube videos).
-use_ffmpeg=no
-
-# Copy audio/video streams without re-encoding. This forces FFmpeg even if use_ffmpeg=no.
-# Faster, but cuts may be keyframe-limited and encode settings such as bitrate,
-# scaling, FPS, subtitles, and HDR-to-SDR are ignored. Copy mode preserves source
-# video container and derives audio extension from the selected audio codec.
-copy_streams=no
-
-# Audio settings
-# Available formats: opus or aac
-audio_format=opus
-# Opus sounds good at low bitrates 32-64k, but aac requires 128-256k.
-audio_bitrate=32k
-
-# Catbox.moe upload settings
-# Whether uploads should go to litterbox instead of catbox.
-# catbox files are stored permanently, while litterbox is temporary
-litterbox=yes
-# If using litterbox, time until video expires
-# Available values: 1h, 12h, 24h, 72h
-litterbox_expire=72h
-
-# Custom upload command (replaces catbox.moe)
-# Use %f as placeholder for the file path
-# Example for 0x0.st:
-# custom_upload_command=curl -F'file=@%f' https://0x0.st
-# You can also make a bash script and set custom_upload_command to `bash ~/path/to/upload.sh %f` to achieve more customizability.
-custom_upload_command=
-
-# Filename format
-# Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
-#                 %Y = year, %M = months, %D = day, %H = hours (24), %I = hours (12),
-#                 %P = am/pm %N = minutes, %S = seconds
-# Title will fallback to filename if it's not present
-#filename_template=%n_%s-%e(%d)
-filename_template=%n_%s-%e
-```
+Copy it to your `script-opts` directory and edit it as needed.
 
 ### Key bindings
 
