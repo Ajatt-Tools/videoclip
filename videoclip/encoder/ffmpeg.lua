@@ -242,183 +242,102 @@ local function make_ffmpeg_encoder(config, timings)
     return pub
 end
 
+------------------------------------------------------------
+-- Tests
+
+local VIDEO_OUTPUT_ARGS = { '-sn', '-dn', '-map_metadata', '-1', '-map_chapters', '-1' }
+local AUDIO_ENCODE_ARGS = { '-c:a', 'libopus', '-b:a', '32k', '-application', 'voip', '-compression_level', '10' }
+
+local function expected_input(source_path)
+    --- Return the ffmpeg input prefix shared by all expected arg lists.
+    return { exec.ffmpeg, '-hide_banner', '-nostdin', '-y', '-ss', '1.000', '-to', '2.000', '-i', source_path }
+end
+
+local function video_encode_args(video_fps)
+    --- Return the video re-encode args; a fixed fps is folded into the -vf chain.
+    local vf = 'scale=-2:480'
+    if not h.is_empty(video_fps) then
+        vf = string.format('%s,fps=%s', vf, video_fps)
+    end
+    return { '-c:v', 'libx264', '-b:v', '1M', '-crf', '23', '-preset', 'faster', '-vf', vf .. ',format=yuv420p' }
+end
+
 local function test_copy_mode(source_path, video_map, audio_map)
     local copy_backend = make_ffmpeg_encoder(fixtures.make_config({ copy_streams = true }), fixtures.make_timings())
 
     -- Video, stream copy, unmuted.
-    h.assert_equals(copy_backend.mkargs_video('/tmp/out.mkv'), {
-        exec.ffmpeg,
-        '-hide_banner',
-        '-nostdin',
-        '-y',
-        '-ss', '1.000',
-        '-to', '2.000',
-        '-i', source_path,
-        '-map', video_map,
-        '-c:v', 'copy',
-        '-map', audio_map,
-        '-c:a', 'copy',
-        '-avoid_negative_ts', 'make_zero',
-        '-sn',
-        '-dn',
-        '-map_metadata', '-1',
-        '-map_chapters', '-1',
-        '/tmp/out.mkv',
-    })
+    h.assert_equals(copy_backend.mkargs_video('/tmp/out.mkv'), fixtures.concat(
+            expected_input(source_path),
+            { '-map', video_map, '-c:v', 'copy', '-map', audio_map, '-c:a', 'copy', '-avoid_negative_ts', 'make_zero' },
+            VIDEO_OUTPUT_ARGS,
+            { '/tmp/out.mkv' }
+    ))
 
     -- Video, stream copy, muted.
     h.assert_equals(
             fixtures.with_properties(h.partial(copy_backend.mkargs_video, '/tmp/out.mkv'), { mute = 'yes' }),
-            {
-                exec.ffmpeg,
-                '-hide_banner',
-                '-nostdin',
-                '-y',
-                '-ss', '1.000',
-                '-to', '2.000',
-                '-i', source_path,
-                '-map', video_map,
-                '-c:v', 'copy',
-                '-an',
-                '-avoid_negative_ts', 'make_zero',
-                '-sn',
-                '-dn',
-                '-map_metadata', '-1',
-                '-map_chapters', '-1',
-                '/tmp/out.mkv',
-            }
+            fixtures.concat(
+                    expected_input(source_path),
+                    { '-map', video_map, '-c:v', 'copy', '-an', '-avoid_negative_ts', 'make_zero' },
+                    VIDEO_OUTPUT_ARGS,
+                    { '/tmp/out.mkv' }
+            )
     )
 
     -- Audio, stream copy.
-    h.assert_equals(copy_backend.mkargs_audio('/tmp/out.m4a'), {
-        exec.ffmpeg,
-        '-hide_banner',
-        '-nostdin',
-        '-y',
-        '-ss', '1.000',
-        '-to', '2.000',
-        '-i', source_path,
-        '-map', audio_map,
-        '-vn',
-        '-sn',
-        '-dn',
-        '-c:a', 'copy',
-        '-avoid_negative_ts', 'make_zero',
-        '-map_metadata', '-1',
-        '-map_chapters', '-1',
-        '/tmp/out.m4a',
-    })
+    h.assert_equals(copy_backend.mkargs_audio('/tmp/out.m4a'), fixtures.concat(
+            expected_input(source_path),
+            { '-map', audio_map, '-vn', '-sn', '-dn', '-c:a', 'copy', '-avoid_negative_ts', 'make_zero', '-map_metadata', '-1', '-map_chapters', '-1' },
+            { '/tmp/out.m4a' }
+    ))
 end
 
 local function test_reencode_mode(source_path, video_map, audio_map)
     local reencode_backend = make_ffmpeg_encoder(fixtures.make_config({ copy_streams = false }), fixtures.make_timings())
 
     -- Video, re-encode, unmuted.
-    h.assert_equals(reencode_backend.mkargs_video('/tmp/out.mp4'), {
-        exec.ffmpeg,
-        '-hide_banner',
-        '-nostdin',
-        '-y',
-        '-ss', '1.000',
-        '-to', '2.000',
-        '-i', source_path,
-        '-map', video_map,
-        '-map', audio_map,
-        '-c:a', 'libopus',
-        '-b:a', '32k',
-        '-application', 'voip',
-        '-compression_level', '10',
-        '-c:v', 'libx264',
-        '-b:v', '1M',
-        '-crf', '23',
-        '-preset', 'faster',
-        '-vf', 'scale=-2:480,format=yuv420p',
-        '-sn',
-        '-dn',
-        '-map_metadata', '-1',
-        '-map_chapters', '-1',
-        '/tmp/out.mp4',
-    })
+    h.assert_equals(reencode_backend.mkargs_video('/tmp/out.mp4'), fixtures.concat(
+            expected_input(source_path),
+            { '-map', video_map, '-map', audio_map },
+            AUDIO_ENCODE_ARGS,
+            video_encode_args(nil),
+            VIDEO_OUTPUT_ARGS,
+            { '/tmp/out.mp4' }
+    ))
 
     -- Video, re-encode, muted.
     h.assert_equals(
             fixtures.with_properties(h.partial(reencode_backend.mkargs_video, '/tmp/out.mp4'), { mute = 'yes' }),
-            {
-                exec.ffmpeg,
-                '-hide_banner',
-                '-nostdin',
-                '-y',
-                '-ss', '1.000',
-                '-to', '2.000',
-                '-i', source_path,
-                '-map', video_map,
-                '-an',
-                '-c:v', 'libx264',
-                '-b:v', '1M',
-                '-crf', '23',
-                '-preset', 'faster',
-                '-vf', 'scale=-2:480,format=yuv420p',
-                '-sn',
-                '-dn',
-                '-map_metadata', '-1',
-                '-map_chapters', '-1',
-                '/tmp/out.mp4',
-            }
+            fixtures.concat(
+                    expected_input(source_path),
+                    { '-map', video_map, '-an' },
+                    video_encode_args(nil),
+                    VIDEO_OUTPUT_ARGS,
+                    { '/tmp/out.mp4' }
+            )
     )
 
+    -- Video, re-encode, fixed FPS.
     local fixed_fps_backend = make_ffmpeg_encoder(
             fixtures.make_config({ copy_streams = false, video_fps = 60 }),
             fixtures.make_timings()
     )
-
-    -- Video, re-encode, fixed FPS.
-    h.assert_equals(fixed_fps_backend.mkargs_video('/tmp/out.mp4'), {
-        exec.ffmpeg,
-        '-hide_banner',
-        '-nostdin',
-        '-y',
-        '-ss', '1.000',
-        '-to', '2.000',
-        '-i', source_path,
-        '-map', video_map,
-        '-map', audio_map,
-        '-c:a', 'libopus',
-        '-b:a', '32k',
-        '-application', 'voip',
-        '-compression_level', '10',
-        '-c:v', 'libx264',
-        '-b:v', '1M',
-        '-crf', '23',
-        '-preset', 'faster',
-        '-vf', 'scale=-2:480,fps=60,format=yuv420p',
-        '-sn',
-        '-dn',
-        '-map_metadata', '-1',
-        '-map_chapters', '-1',
-        '/tmp/out.mp4',
-    })
+    h.assert_equals(fixed_fps_backend.mkargs_video('/tmp/out.mp4'), fixtures.concat(
+            expected_input(source_path),
+            { '-map', video_map, '-map', audio_map },
+            AUDIO_ENCODE_ARGS,
+            video_encode_args(60),
+            VIDEO_OUTPUT_ARGS,
+            { '/tmp/out.mp4' }
+    ))
 
     -- Audio, re-encode.
-    h.assert_equals(reencode_backend.mkargs_audio('/tmp/out.opus'), {
-        exec.ffmpeg,
-        '-hide_banner',
-        '-nostdin',
-        '-y',
-        '-ss', '1.000',
-        '-to', '2.000',
-        '-i', source_path,
-        '-map', audio_map,
-        '-vn',
-        '-sn',
-        '-dn',
-        '-map_metadata', '-1',
-        '-map_chapters', '-1',
-        '-c:a', 'libopus',
-        '-b:a', '32k',
-        '-application', 'voip',
-        '-compression_level', '10',
-        '/tmp/out.opus',
-    })
+    h.assert_equals(reencode_backend.mkargs_audio('/tmp/out.opus'), fixtures.concat(
+            expected_input(source_path),
+            { '-map', audio_map, '-vn', '-sn', '-dn', '-map_metadata', '-1', '-map_chapters', '-1' },
+            AUDIO_ENCODE_ARGS,
+            { '/tmp/out.opus' }
+    ))
 end
 
 local function test_mk_out_paths()
