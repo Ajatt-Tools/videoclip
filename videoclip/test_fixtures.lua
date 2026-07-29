@@ -54,6 +54,9 @@ end
 
 function this.with_properties(callable, properties)
     --- Temporarily set mp properties while callable runs, then restore originals.
+    --- Properties are restored even when callable raises an error.
+    --- Caveat: properties whose original value was nil are NOT restored
+    --- (real mpv properties always have values, so this only affects stubs).
     local original_properties = {}
 
     for name, value in pairs(properties) do
