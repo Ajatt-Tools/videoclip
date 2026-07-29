@@ -37,6 +37,17 @@ function this.index_of(args, expected)
     return nil
 end
 
+function this.concat(...)
+    --- Concatenate multiple argument arrays into one flat list for exact comparison.
+    local result = {}
+    for _, list in ipairs({...}) do
+        for _, arg in ipairs(list) do
+            table.insert(result, arg)
+        end
+    end
+    return result
+end
+
 function this.make_config(opts)
     --- Return config for encoder tests, based on the real defaults.
     --- Values are normalized with the same validate_config pass used in production.
