@@ -156,6 +156,7 @@ local function make_encoder()
     end
 
     function pub.is_alive(encoder_name)
+        --- Return true when the named encoder ("mpv" or "ffmpeg") can be executed.
         if encoder_name == "mpv" then
             return this.mpv.is_alive()
         elseif encoder_name == "ffmpeg" then
