@@ -228,6 +228,7 @@ local function make_ffmpeg_encoder(config, timings)
     end
 
     function pub.is_alive()
+        --- Return true when ffmpeg can be executed.
         return self.alive == true
     end
 
