@@ -205,13 +205,16 @@ local function run_tests()
 
     local test_encoder = make_encoder()
 
-    test_encoder.init(fixtures.make_config({ use_ffmpeg = false, copy_streams = false }), fixtures.make_timings())
+    -- Backend routing depends only on config flags, so executable checks are skipped.
+    local no_alive_checks = { check_alive = false }
+
+    test_encoder.init(fixtures.make_config({ use_ffmpeg = false, copy_streams = false }), fixtures.make_timings(), no_alive_checks)
     h.assert_equals(test_encoder.active_backend().name, mpv_encoder.name)
 
-    test_encoder.init(fixtures.make_config({ use_ffmpeg = true, copy_streams = false }), fixtures.make_timings())
+    test_encoder.init(fixtures.make_config({ use_ffmpeg = true, copy_streams = false }), fixtures.make_timings(), no_alive_checks)
     h.assert_equals(test_encoder.active_backend().name, ffmpeg_encoder.name)
 
-    test_encoder.init(fixtures.make_config({ use_ffmpeg = false, copy_streams = true }), fixtures.make_timings())
+    test_encoder.init(fixtures.make_config({ use_ffmpeg = false, copy_streams = true }), fixtures.make_timings(), no_alive_checks)
     h.assert_equals(test_encoder.active_backend().name, ffmpeg_encoder.name)
 
     h.assert_equals(clip_result_failed(nil), true)
