@@ -41,6 +41,23 @@ local function clip_result_failed(ret)
     return ret == nil or ret.status ~= 0 or string.match(ret.stdout or "", "could not open") ~= nil
 end
 
+local function handle_clip_result(output_file_path, on_complete, ret, err)
+    --- Notify the user about encoder completion and run the success callback.
+    if ret == nil then
+        h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
+        mp.msg.error("Clip subprocess failed: " .. (err or "unknown error"))
+        return
+    end
+    if clip_result_failed(ret) then
+        h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
+    else
+        h.notify(string.format("Clip saved to %s.", output_file_path), "info", 2)
+        if on_complete then
+            on_complete(output_file_path)
+        end
+    end
+end
+
 --- Create the encoder facade.
 --- Routes clip creation to the mpv or ffmpeg backend based on the current config.
 local function make_encoder()
@@ -141,19 +158,7 @@ local function make_encoder()
         end
 
         local process_result = function(_, ret, err)
-            if ret == nil then
-                h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
-                mp.msg.error("Clip subprocess failed: " .. (err or "unknown error"))
-                return
-            end
-            if ret.status ~= 0 or string.match(ret.stdout or "", "could not open") then
-                h.notify_error(string.format("Error: couldn't create clip %s.", output_file_path), "error", 5)
-            else
-                h.notify(string.format("Clip saved to %s.", output_file_path), "info", 2)
-                if on_complete then
-                    on_complete(output_file_path)
-                end
-            end
+            handle_clip_result(output_file_path, on_complete, ret, err)
         end
 
         h.subprocess_async(args, process_result)
