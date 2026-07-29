@@ -72,12 +72,7 @@ local function make_ffmpeg_encoder(config, timings)
 
     function self.make_video_filters()
         --- Return a comma-separated string of video filters.
-        local video_filters = { table.concat { 'scale=', self.config.video_width, ':', self.config.video_height } }
-        if self.config.video_fps ~= 'auto' then
-            table.insert(video_filters, table.concat { 'fps=', self.config.video_fps })
-        end
-        table.insert(video_filters, 'format=yuv420p')
-        return table.concat(video_filters, ',')
+        return table.concat(eutils.video_filter_chain(self.config), ',')
     end
 
     function self.append_video_reencode_args(args)

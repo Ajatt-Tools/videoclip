@@ -106,6 +106,23 @@ function this.result_to_str(result)
     return ""
 end
 
+--- Return the ordered list of video filters shared by both backends.
+--- The fps filter is omitted when video_fps == 'auto' (keep source FPS).
+--- Each element is a bare ffmpeg/mpv filter expression (e.g. "scale=-2:480").
+--- Examples:
+---    video_filter_chain({ video_width = -2, video_height = 480, video_fps = 'auto' })
+---      → { "scale=-2:480", "format=yuv420p" }
+---    video_filter_chain({ video_width = -2, video_height = 480, video_fps = 60 })
+---      → { "scale=-2:480", "fps=60", "format=yuv420p" }
+function this.video_filter_chain(config)
+    local filters = { table.concat { 'scale=', config.video_width, ':', config.video_height } }
+    if config.video_fps ~= 'auto' then
+        table.insert(filters, table.concat { 'fps=', config.video_fps })
+    end
+    table.insert(filters, 'format=yuv420p')
+    return filters
+end
+
 function this.mk_out_path(clip_filename_noext, output_folder_path, file_extension)
     --- Return the output path for a re-encoded audio/video clip.
     return utils.join_path(h.expand_path(output_folder_path), clip_filename_noext .. file_extension)

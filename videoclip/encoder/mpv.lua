@@ -58,13 +58,9 @@ local function make_mpv_encoder(config, timings)
             table.insert(args, #args, '--vf-add=gpu')
         end
 
-        table.insert(args, #args, table.concat { '--vf-add=scale=', self.config.video_width, ':', self.config.video_height })
-
-        if self.config.video_fps ~= 'auto' then
-            table.insert(args, #args, table.concat { '--vf-add=fps=', self.config.video_fps })
+        for _, filter in ipairs(eutils.video_filter_chain(self.config)) do
+            table.insert(args, #args, '--vf-add=' .. filter)
         end
-
-        table.insert(args, #args, '--vf-add=format=yuv420p')
 
         return args
     end
