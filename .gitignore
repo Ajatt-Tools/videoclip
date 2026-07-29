@@ -1,5 +1,8 @@
 .idea
 .vscode
 
+.github/RELEASE/*.conf
+.github/RELEASE/*.zip
+
 /*.md
 !/README.md
