@@ -84,6 +84,7 @@ local function make_encoder()
     end
 
     local function mk_output_args(backend, clip_type)
+        --- Build the output path and encoder arguments for the given clip type.
         local clip_filename_noext = construct_output_filename_noext()
         if clip_type == 'video' then
             local output_path = backend.mk_out_path_video(clip_filename_noext)
