@@ -189,7 +189,7 @@ main_menu.keybindings = {
         main_menu:create_clip('video')
     end },
     { key = 'C', fn = function()
-        force_resolution(1920, -2, main_menu.create_clip, 'video')
+        force_resolution(1920, -2, main_menu.create_clip, main_menu, 'video')
     end },
     { key = 'a', fn = function()
         main_menu:create_clip('audio')
@@ -198,7 +198,7 @@ main_menu.keybindings = {
         main_menu:create_clip('video', upload_video)
     end },
     { key = 'X', fn = function()
-        force_resolution(1920, -2, main_menu.create_clip, 'video', upload_video)
+        force_resolution(1920, -2, main_menu.create_clip, main_menu, 'video', upload_video)
     end },
     { key = 'p', fn = function()
         pref_menu:open()
