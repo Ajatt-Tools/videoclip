@@ -9,7 +9,7 @@ local mp = require('mp')
 local h = require('helpers')
 local eutils = require('encoder.utils')
 local exec = require('encoder.executables')
-local fixtures = require('test_fixtures')
+local fixtures = require('test_fixtures') -- loaded so videoclip tests can run inside real mpv.
 local NAME = "ffmpeg_encoder"
 
 local function make_ffmpeg_encoder(config, timings)

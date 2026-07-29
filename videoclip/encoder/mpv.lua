@@ -9,7 +9,7 @@ local mp = require('mp')
 local h = require('helpers')
 local eutils = require('encoder.utils')
 local exec = require('encoder.executables')
-local fixtures = require('test_fixtures')
+local fixtures = require('test_fixtures') -- loaded so videoclip tests can run inside real mpv.
 
 local HDR_TO_SDR_TONE_MAPPING = 'bt.2390'
 local SDR_TRANSFER_CHARACTERISTICS = 'bt.1886'

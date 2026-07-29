@@ -10,7 +10,7 @@ local utils = require('mp.utils')
 local h = require('helpers')
 local mpv_encoder = require('encoder.mpv')
 local ffmpeg_encoder = require('encoder.ffmpeg')
-local fixtures = require('test_fixtures')
+local fixtures = require('test_fixtures') -- loaded so videoclip tests can run inside real mpv.
 
 --- Expand a filename template by substituting the available tags.
 --- Available tags: %n = filename, %t = title, %s = start, %e = end, %d = duration,
