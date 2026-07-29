@@ -189,7 +189,7 @@ main_menu.keybindings = {
         main_menu:create_clip('video')
     end },
     { key = 'C', fn = function()
-        force_resolution(1920, -2, encoder.create_clip, 'video')
+        force_resolution(1920, -2, main_menu.create_clip, 'video')
     end },
     { key = 'a', fn = function()
         main_menu:create_clip('audio')
