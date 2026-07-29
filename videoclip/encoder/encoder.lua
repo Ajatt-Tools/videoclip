@@ -175,14 +175,18 @@ local function make_encoder()
         error("unknown encoder name: " .. tostring(encoder_name))
     end
 
-    function pub.init(config, timings_mgr)
+    function pub.init(config, timings_mgr, opts)
         --- Initialize encoder backends with shared config and timings state.
+        --- Pass { check_alive = false } to skip executable availability checks.
+        opts = opts or {}
         this.config = config
         this.timings = timings_mgr
         this.mpv = mpv_encoder.new(config, timings_mgr)
         this.ffmpeg = ffmpeg_encoder.new(config, timings_mgr)
-        this.mpv.set_alive()
-        this.ffmpeg.set_alive()
+        if opts.check_alive ~= false then
+            this.mpv.set_alive()
+            this.ffmpeg.set_alive()
+        end
         return pub
     end
 
