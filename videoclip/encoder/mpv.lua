@@ -227,8 +227,16 @@ local function test_mkargs_audio(opts)
     }))
 end
 
+local function test_mk_out_paths()
+    --- Test output path construction for video and audio clips.
+    local test_encoder = make_mpv_encoder(fixtures.make_config({}), fixtures.make_timings())
+    h.assert_equals(test_encoder.mk_out_path_video('clip'), '/tmp/clip.mp4')
+    h.assert_equals(test_encoder.mk_out_path_audio('clip'), '/tmp/clip.opus')
+end
+
 local function run_tests()
     --- Run tests for the mpv encoder backend.
+    test_mk_out_paths()
     test_mkargs_video({ hdr_to_sdr = true, mute = 'no' })
     test_mkargs_video({ hdr_to_sdr = true, mute = 'yes' })
     test_mkargs_video({ hdr_to_sdr = false, mute = 'no' })
