@@ -1,0 +1,37 @@
+name: "tagged-release"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  tagged-release:
+    name: "Tagged Release"
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: write
+
+    steps:
+      # This checks out the new tag, not the master branch. E.g. 'refs/tags/v1.2.3'
+      - name: Check out the repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: "Create zip and config"
+        shell: bash
+        run: |
+          make BRANCH=HEAD VERSION="${{github.ref_name}}"
+
+      - name: "Create release"
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: false
+          generate_release_notes: true
+          append_body: true
+          body_path: .github/RELEASE/release-boilerplate.md
+          name: "videoclip ${{github.ref_name}}"
+          files: |
+            .github/RELEASE/*.zip
+            .github/RELEASE/*.conf

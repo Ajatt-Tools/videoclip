@@ -68,11 +68,11 @@ make PREFIX="$HOME/.config/mpv" install
 
 ### Manually
 
-Download
-[the repository](https://github.com/Ajatt-Tools/videoclip/archive/refs/heads/master.zip)
-and extract the folder containing
-`videoclip.lua`
-to your [mpv scripts](https://github.com/mpv-player/mpv/wiki/User-Scripts) directory:
+1) Download
+   [the latest release](https://github.com/Ajatt-Tools/videoclip/releases)
+   or [the master branch (trunk)](https://github.com/Ajatt-Tools/videoclip/archive/refs/heads/master.zip)
+2) Extract the `videoclip/` directory from the zip file
+   to your [mpv scripts](https://github.com/mpv-player/mpv/wiki/User-Scripts) directory.
 
 | OS | Location |
 | --- | --- |
