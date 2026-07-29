@@ -83,17 +83,6 @@ local function make_encoder()
         return this.config.use_ffmpeg or this.config.copy_streams
     end
 
-    ------------------------------------------------------------
-    --- Public
-
-    function pub.active_backend()
-        --- Return the backend selected for the current config.
-        if uses_ffmpeg() then
-            return this.ffmpeg
-        end
-        return this.mpv
-    end
-
     local function mk_output_args(backend, clip_type)
         local clip_filename_noext = construct_output_filename_noext()
         if clip_type == 'video' then
@@ -103,6 +92,17 @@ local function make_encoder()
             local output_path = backend.mk_out_path_audio(clip_filename_noext)
             return output_path, backend.mkargs_audio(output_path)
         end
+    end
+
+    ------------------------------------------------------------
+    --- Public
+
+    function pub.active_backend()
+        --- Return the backend selected for the current config.
+        if uses_ffmpeg() then
+            return this.ffmpeg
+        end
+        return this.mpv
     end
 
     function pub.create_clip(clip_type, on_complete)
