@@ -36,6 +36,8 @@ local function expand_filename_template(template, filename, title, timings, date
             :gsub("%%S", h.two_digit(date.sec)))
 end
 
+--- Create the encoder facade.
+--- Routes clip creation to the mpv or ffmpeg backend based on the current config.
 local function make_encoder()
     local this = {
         config = nil,
