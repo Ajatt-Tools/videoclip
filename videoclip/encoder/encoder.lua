@@ -36,6 +36,11 @@ local function expand_filename_template(template, filename, title, timings, date
             :gsub("%%S", h.two_digit(date.sec)))
 end
 
+local function clip_result_failed(ret)
+    --- Return true when the encoder process did not produce a successful result.
+    return ret == nil or ret.status ~= 0 or string.match(ret.stdout or "", "could not open") ~= nil
+end
+
 --- Create the encoder facade.
 --- Routes clip creation to the mpv or ffmpeg backend based on the current config.
 local function make_encoder()
@@ -199,6 +204,11 @@ local function run_tests()
 
     test_encoder.init(fixtures.make_config({ use_ffmpeg = false, copy_streams = true }), fixtures.make_timings())
     h.assert_equals(test_encoder.active_backend().name, ffmpeg_encoder.name)
+
+    h.assert_equals(clip_result_failed(nil), true)
+    h.assert_equals(clip_result_failed({ status = 1, stdout = '', stderr = 'error' }), true)
+    h.assert_equals(clip_result_failed({ status = 0, stdout = 'could not open file', stderr = '' }), true)
+    h.assert_equals(clip_result_failed({ status = 0, stdout = '', stderr = '' }), false)
 end
 
 return {
