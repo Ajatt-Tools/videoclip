@@ -20,20 +20,23 @@ local fixtures = require('test_fixtures') -- loaded so videoclip tests can run i
 ---    expand_filename_template('%n_%s-%e', 'video', 'video', {start=0, ['end']=1}, os.date('*t'))
 local function expand_filename_template(template, filename, title, timings, date)
     local twelve = h.twelve_hour(date.hour)
-    return (template
-            :gsub("%%n", h.partial(h.truncate_utf8_bytes, filename, 200))
-            :gsub("%%t", h.partial(h.truncate_utf8_bytes, title, 200))
-            :gsub("%%s", h.partial(h.human_readable_time, timings['start']))
-            :gsub("%%e", h.partial(h.human_readable_time, timings['end']))
-            :gsub("%%d", h.partial(h.human_readable_time, timings['end'] - timings['start']))
-            :gsub("%%Y", h.partial(tostring, date.year))
-            :gsub("%%M", h.partial(h.two_digit, date.month))
-            :gsub("%%D", h.partial(h.two_digit, date.day))
-            :gsub("%%H", h.partial(h.two_digit, date.hour))
-            :gsub("%%I", h.partial(h.two_digit, twelve.hour))
-            :gsub("%%P", h.partial(tostring, twelve.sign))
-            :gsub("%%N", h.partial(h.two_digit, date.min))
-            :gsub("%%S", h.partial(h.two_digit, date.sec)))
+    -- Expand tags in one pass so tag-like text inside substituted values stays literal.
+    local substitutions = {
+        n = h.truncate_utf8_bytes(filename, 200),
+        t = h.truncate_utf8_bytes(title, 200),
+        s = h.human_readable_time(timings['start']),
+        e = h.human_readable_time(timings['end']),
+        d = h.human_readable_time(timings['end'] - timings['start']),
+        Y = tostring(date.year),
+        M = h.two_digit(date.month),
+        D = h.two_digit(date.day),
+        H = h.two_digit(date.hour),
+        I = h.two_digit(twelve.hour),
+        P = tostring(twelve.sign),
+        N = h.two_digit(date.min),
+        S = h.two_digit(date.sec),
+    }
+    return (template:gsub("%%(.)", substitutions))
 end
 
 local function clip_result_failed(ret)
@@ -203,6 +206,9 @@ local function run_tests()
     h.assert_equals(expand_filename_template('%Y-%M-%D_%H-%I-%P-%N-%S', 'v', 't', timings, fixed_date), '2024-03-05_14-02-pm-07-09')
     h.assert_equals(expand_filename_template('clip_%t', 'file', 'My Title', timings, fixed_date), 'clip_My Title')
     h.assert_equals(expand_filename_template('%n_%t', '50% off', '100% Complete', timings, fixed_date), '50% off_100% Complete')
+    h.assert_equals(expand_filename_template('%n', '100%d clip', 'title', timings, fixed_date), '100%d clip')
+    h.assert_equals(expand_filename_template('%t', 'file', '100%d title', timings, fixed_date), '100%d title')
+    h.assert_equals(expand_filename_template('%x_%%', 'file', 'title', timings, fixed_date), '%x_%%')
 
     local test_encoder = make_encoder()
 
