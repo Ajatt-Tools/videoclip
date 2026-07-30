@@ -40,4 +40,4 @@ uninstall:
 	rm -rf -- "$(PREFIX)/scripts/$(PROJECT)"
 
 clean:
-	rm -v -- "$(ZIP)" "$(EXAMPLE_CONFIG_COPY)" || true
+	rm -vf -- "$(EXAMPLE_CONFIG_COPY)" "$(RELEASE_DIR)/$(PROJECT)_"*.zip
