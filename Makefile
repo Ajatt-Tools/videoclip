@@ -4,7 +4,7 @@ PACKAGE     := videoclip
 # e.g. ~/.config/mpv/ or $pkgdir/etc/mpv when using PKGBUILD.
 PREFIX      ?= $(HOME)/.config/mpv
 BRANCH      ?= master
-VERSION     ?= $(shell git describe --tags $(BRANCH))
+VERSION     ?= $(shell git describe --tags $(BRANCH) 2>/dev/null || echo dev)
 RELEASE_DIR := .github/RELEASE
 ZIP         := $(RELEASE_DIR)/$(PROJECT)_$(VERSION).zip
 
