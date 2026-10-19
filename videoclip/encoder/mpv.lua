@@ -187,8 +187,8 @@ local function make_mpv_encoder(config, timings)
     return pub
 end
 
+--- Test video argument generation with exact list equality.
 local function test_mkargs_video(opts)
-    --- Test video argument generation with exact list equality.
     opts = opts or {}
     local config = fixtures.make_config({
         hdr_to_sdr = opts.hdr_to_sdr or false,
@@ -202,11 +202,12 @@ local function test_mkargs_video(opts)
             function()
                 return test_encoder.mkargs_video('/tmp/out.mp4'), mp.get_property('volume'), mp.get_property('sub-delay')
             end,
-            fixtures.make_pinned_properties(mute)
+            fixtures.make_pinned_properties(mute, opts.aid)
     )
     h.assert_equals(args, fixtures.expected_video_args({
         hdr_to_sdr = opts.hdr_to_sdr or false,
         mute = mute,
+        aid = opts.aid,
         volume = volume,
         sub_delay = sub_delay,
         video_fps = opts.video_fps or 'auto',
@@ -252,6 +253,12 @@ local function run_tests()
     test_mkargs_video({ hdr_to_sdr = false, mute = 'yes' })
     test_mkargs_video({ video_fps = '60' })
     test_mkargs_video({ audio_format = 'aac' })
+    -- Cover selected nondefault tracks and explicitly disabled audio independently of mute.
+    for _, mute in ipairs({ 'no', 'yes' }) do
+        for _, aid in ipairs({ '2', 'no' }) do
+            test_mkargs_video({ mute = mute, aid = aid })
+        end
+    end
 
     test_mkargs_audio({ audio_format = 'opus', out_path = '/tmp/out.opus' })
     test_mkargs_audio({ audio_format = 'aac', out_path = '/tmp/out.aac' })

@@ -98,10 +98,10 @@ function this.make_timings()
     return { start = 1, ['end'] = 2, validate = function() return true end, reset = function() end }
 end
 
-function this.make_pinned_properties(mute)
-    --- Return player properties pinned for deterministic mpv encoder tests.
+--- Return player properties pinned for deterministic mpv encoder tests.
+function this.make_pinned_properties(mute, aid)
     return {
-        aid = '1',
+        aid = aid or '1',
         mute = mute,
         volume = '100',
         sid = 'no',
@@ -189,7 +189,7 @@ function this.expected_video_args(opts)
         table.concat { '--oac=', audio_codec },
         '--start=1.000',
         '--end=2.000',
-        '--aid=1',
+        table.concat { '--aid=', mute == 'yes' and 'no' or (opts.aid or '1') },
         table.concat { '--mute=', mute },
         table.concat { '--volume=', volume },
         '--ovcopts-add=b=1M',
