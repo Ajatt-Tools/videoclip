@@ -82,6 +82,15 @@ local function make_mpv_encoder(config, timings)
         return args
     end
 
+    --- Return the selected audio track, or disable audio entirely for muted videos.
+    function self.video_audio_track()
+        -- Muting only encodes silence. Disabling the track prevents an audio stream in the output.
+        if mp.get_property('mute') == 'yes' then
+            return 'no'
+        end
+        return mp.get_property('aid') -- track number
+    end
+
     ------------------------------------------------------------
     --- Public
 
@@ -149,7 +158,7 @@ local function make_mpv_encoder(config, timings)
                 table.concat { '--oac=', self.config.audio_codec },
                 table.concat { '--start=', eutils.toms(self.timings['start']) },
                 table.concat { '--end=', eutils.toms(self.timings['end']) },
-                table.concat { '--aid=', mp.get_property("aid") }, -- track number
+                table.concat { '--aid=', self.video_audio_track() },
                 table.concat { '--mute=', mp.get_property("mute") },
                 table.concat { '--volume=', mp.get_property('volume') },
                 table.concat { '--ovcopts-add=b=', self.config.video_bitrate },

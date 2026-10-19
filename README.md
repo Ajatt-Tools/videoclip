@@ -139,6 +139,7 @@ c script-binding videoclip-menu-open
 It is possible to create silent videoclips.
 To do that, first mute audio in mpv.
 The default key binding is `m`.
+Muted videoclips contain no audio tracks, rather than an audio track with silence.
 
 If a video has visible subtitles, they will be embedded automatically.
 Toggle them off in mpv if you don't want any subtitles to be visible.
