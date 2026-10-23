@@ -135,32 +135,43 @@ this.quote_if_necessary = function(args)
     return ret
 end
 
---- Split a command string into argv-style tokens, honoring double quotes.
---- Pure: depends only on the input string.
+--- Split a command string into argv-style tokens, honoring single and double quotes.
+--- Pure: depends only on the input string; no shell expansion is performed.
 --- Examples:
 ---    parse_command_args('curl -F file=@x') → { "curl", "-F", "file=@x" }
+---    parse_command_args([[curl -F'file=@x']]) → { "curl", "-Ffile=@x" }
 ---    parse_command_args('curl -F "a b"') → { "curl", "-F", "a b" }
 ---    parse_command_args('') → {}
 this.parse_command_args = function(cmd_str)
     local args = {}
     local buffer = ""
-    local in_quote = false
+    local quote_char = nil
+    local token_started = false
 
     for i = 1, #cmd_str do
         local c = cmd_str:sub(i, i)
-        if c == '"' then
-            in_quote = not in_quote
-        elseif c:match("%s") and not in_quote then
-            if not this.is_empty(buffer) then
+        if quote_char ~= nil then
+            if c == quote_char then
+                quote_char = nil
+            else
+                buffer = buffer .. c
+            end
+        elseif c == '"' or c == "'" then
+            quote_char = c
+            token_started = true
+        elseif c:match("%s") then
+            if token_started then
                 table.insert(args, buffer)
                 buffer = ""
+                token_started = false
             end
         else
             buffer = buffer .. c
+            token_started = true
         end
     end
 
-    if not this.is_empty(buffer) then
+    if token_started then
         table.insert(args, buffer)
     end
 
@@ -292,6 +303,9 @@ this.run_tests = function()
 
     this.assert_equals(this.parse_command_args('curl -F file=@x'), { "curl", "-F", "file=@x" })
     this.assert_equals(this.parse_command_args('curl -F "a b"'), { "curl", "-F", "a b" })
+    -- This is the documented custom-upload form; shell quotes must not survive in argv.
+    this.assert_equals(this.parse_command_args("curl -F'file=@%f' https://0x0.st"), { "curl", "-Ffile=@%f", "https://0x0.st" })
+    this.assert_equals(this.parse_command_args('tool "with spaces"'), { "tool", "with spaces" })
     this.assert_equals(this.parse_command_args(''), {})
     this.assert_equals(this.parse_command_args('  a  b  '), { "a", "b" })
 end
