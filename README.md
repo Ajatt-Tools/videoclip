@@ -159,3 +159,23 @@ Run tests inside a real mpv instance with a local media file:
 ```bash
 VIDEOCLIP_TEST=TRUE mpv --msg-level=all=no,videoclip=warn "/path/to/video.mkv"
 ```
+
+## Custom upload commands
+
+Set `custom_upload_command` in the config to use another upload service, for example:
+
+```ini
+custom_upload_command=curl -F'file=@%f' https://0x0.st
+```
+
+Single and double quotes group text into one argument and are removed before execution.
+Quoted text can be adjacent to unquoted text, and empty quoted arguments are preserved.
+The other quote character stays literal inside a quoted group.
+The `%f` placeholder is replaced with the clip path after parsing,
+so spaces and quotes in that path do not split it into extra arguments.
+
+Commands are passed directly to [mpv's subprocess command](https://mpv.io/manual/stable/#command-interface),
+not through a shell.
+Backslash escaping, variable expansion, wildcards, pipes, and redirection are not interpreted.
+An unmatched quote groups the rest of the command without reporting an error.
+Use a separate script if you need shell features.
