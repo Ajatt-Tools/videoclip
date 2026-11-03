@@ -135,21 +135,25 @@ this.quote_if_necessary = function(args)
     return ret
 end
 
---- Split a command string into argv-style tokens, honoring single and double quotes.
---- Pure: depends only on the input string; no shell expansion is performed.
---- Examples:
----    parse_command_args('curl -F file=@x') → { "curl", "-F", "file=@x" }
----    parse_command_args([[curl -F'file=@x']]) → { "curl", "-Ffile=@x" }
----    parse_command_args('curl -F "a b"') → { "curl", "-F", "a b" }
----    parse_command_args('') → {}
-this.parse_command_args = function(cmd_str)
+--- Create a one-command parser whose helpers share only this instance's private state.
+local function make_command_args_parser()
     local args = {}
     local buffer = ""
     local quote_char = nil
     local token_started = false
+    local pub = {}
 
-    for i = 1, #cmd_str do
-        local c = cmd_str:sub(i, i)
+    --- Keep empty quoted arguments while skipping whitespace between tokens.
+    local function emit_argument()
+        if token_started then
+            table.insert(args, buffer)
+            buffer = ""
+            token_started = false
+        end
+    end
+
+    --- Track matching quotes without treating the other quote character as syntax.
+    local function consume_character(c)
         if quote_char ~= nil then
             if c == quote_char then
                 quote_char = nil
@@ -160,22 +164,38 @@ this.parse_command_args = function(cmd_str)
             quote_char = c
             token_started = true
         elseif c:match("%s") then
-            if token_started then
-                table.insert(args, buffer)
-                buffer = ""
-                token_started = false
-            end
+            emit_argument()
         else
             buffer = buffer .. c
             token_started = true
         end
     end
 
-    if token_started then
-        table.insert(args, buffer)
+    --- Return the grouped arguments, preserving empty groups and unfinished quoted text.
+    function pub.parse_args(cmd_str)
+        for i = 1, #cmd_str do
+            consume_character(cmd_str:sub(i, i))
+        end
+        emit_argument()
+        return args
     end
 
-    return args
+    return pub
+end
+
+--- Split a command string into argv-style tokens, honoring single and double quotes.
+--- Return an argument array without shell expansion or backslash escaping.
+--- An unmatched quote groups the rest of the input instead of reporting an error.
+--- Empty input returns an empty array. All parsing state stays local to this call.
+--- mpv's subprocess command takes argv directly, so grouping quotes must be removed here.
+--- https://mpv.io/manual/stable/#command-interface
+--- Examples:
+---    parse_command_args('curl -F file=@x') → { "curl", "-F", "file=@x" }
+---    parse_command_args([[curl -F'file=@x']]) → { "curl", "-Ffile=@x" }
+---    parse_command_args('curl -F "a b"') → { "curl", "-F", "a b" }
+---    parse_command_args('') → {}
+this.parse_command_args = function(cmd_str)
+    return make_command_args_parser().parse_args(cmd_str)
 end
 
 this.query_xdg_user_dir = function(name)
@@ -272,6 +292,55 @@ function this.partial(callable, ...)
     end
 end
 
+--- Exercise command grouping without involving a shell or starting an upload.
+local function test_parse_command_args()
+    for _, case in ipairs({
+        { 'curl -F file=@x', { "curl", "-F", "file=@x" } },
+        { 'curl -F "a b"', { "curl", "-F", "a b" } },
+        -- This is the documented custom-upload form. Shell quotes must not survive in argv.
+        { "curl -F'file=@%f' https://0x0.st", { "curl", "-Ffile=@%f", "https://0x0.st" } },
+        -- Quotes group argv text, not shell input. Empty groups still occupy an argument.
+        { [[tool 'with spaces']], { 'tool', 'with spaces' } },
+        { [[tool pre'with spaces'post]], { 'tool', 'prewith spacespost' } },
+        { [[tool "don't split"]], { 'tool', "don't split" } },
+        { [[tool 'say "hi"']], { 'tool', 'say "hi"' } },
+        { [[tool 'one'"two"three]], { 'tool', 'onetwothree' } },
+        { [[tool '' ""]], { 'tool', '', '' } },
+        { '', {} },
+        { '  a  b  ', { "a", "b" } },
+    }) do
+        this.assert_equals(this.parse_command_args(case[1]), case[2])
+    end
+end
+
+--- Preserve the small parser's limits instead of silently adding shell behavior.
+local function test_command_args_parser_limits()
+    for _, case in ipairs({
+        { [[tool 'unfinished text]], { 'tool', 'unfinished text' } },
+        { [[tool "unfinished text]], { 'tool', 'unfinished text' } },
+        { [[tool a\ b]], { 'tool', [[a\]], 'b' } },
+        { [[tool "C:\clip folder\video.mp4"]], { 'tool', [[C:\clip folder\video.mp4]] } },
+        { [[tool '$HOME;$(echo unsafe)']], { 'tool', '$HOME;$(echo unsafe)' } },
+        { [[tool pre''post]], { 'tool', 'prepost' } },
+        { "tool\t'a b'\nend", { 'tool', 'a b', 'end' } },
+        { '  \t\n  ', {} },
+    }) do
+        this.assert_equals(this.parse_command_args(case[1]), case[2])
+    end
+end
+
+--- Unfinished quotes and returned arrays must not carry state into later calls.
+local function test_command_args_parser_isolation()
+    for _, command in ipairs({ [[tool 'unfinished]], [[tool "unfinished]], [[tool '']] }) do
+        local first = this.parse_command_args(command)
+        local second = this.parse_command_args('next value')
+        assert(first ~= second)
+        first[1] = 'changed'
+        this.assert_equals(second, { 'next', 'value' })
+        this.assert_equals(this.parse_command_args(''), {})
+    end
+end
+
 this.run_tests = function()
     --- Run unit tests for helper functions.
     this.assert_equals(this.is_empty(nil), true)
@@ -301,21 +370,9 @@ this.run_tests = function()
 
     this.assert_equals(this.partial(greet, "Hello")("Lua"), "Hello, Lua")
 
-    this.assert_equals(this.parse_command_args('curl -F file=@x'), { "curl", "-F", "file=@x" })
-    this.assert_equals(this.parse_command_args('curl -F "a b"'), { "curl", "-F", "a b" })
-    -- This is the documented custom-upload form; shell quotes must not survive in argv.
-    this.assert_equals(this.parse_command_args("curl -F'file=@%f' https://0x0.st"), { "curl", "-Ffile=@%f", "https://0x0.st" })
-    -- Quotes group argv text, not shell input. Empty groups still occupy an argument.
-    for _, case in ipairs({
-        { [[tool 'with spaces']], { 'tool', 'with spaces' } },
-        { [[tool pre'with spaces'post]], { 'tool', 'prewith spacespost' } },
-        { [[tool "don't split"]], { 'tool', "don't split" } },
-        { [[tool '' ""]], { 'tool', '', '' } },
-    }) do
-        this.assert_equals(this.parse_command_args(case[1]), case[2])
-    end
-    this.assert_equals(this.parse_command_args(''), {})
-    this.assert_equals(this.parse_command_args('  a  b  '), { "a", "b" })
+    test_parse_command_args()
+    test_command_args_parser_limits()
+    test_command_args_parser_isolation()
 end
 
 return this
