@@ -305,7 +305,15 @@ this.run_tests = function()
     this.assert_equals(this.parse_command_args('curl -F "a b"'), { "curl", "-F", "a b" })
     -- This is the documented custom-upload form; shell quotes must not survive in argv.
     this.assert_equals(this.parse_command_args("curl -F'file=@%f' https://0x0.st"), { "curl", "-Ffile=@%f", "https://0x0.st" })
-    this.assert_equals(this.parse_command_args('tool "with spaces"'), { "tool", "with spaces" })
+    -- Quotes group argv text, not shell input. Empty groups still occupy an argument.
+    for _, case in ipairs({
+        { [[tool 'with spaces']], { 'tool', 'with spaces' } },
+        { [[tool pre'with spaces'post]], { 'tool', 'prewith spacespost' } },
+        { [[tool "don't split"]], { 'tool', "don't split" } },
+        { [[tool '' ""]], { 'tool', '', '' } },
+    }) do
+        this.assert_equals(this.parse_command_args(case[1]), case[2])
+    end
     this.assert_equals(this.parse_command_args(''), {})
     this.assert_equals(this.parse_command_args('  a  b  '), { "a", "b" })
 end
